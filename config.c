@@ -25,7 +25,28 @@
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 // 'static' implies that the function can only be used in this file
 // (cfr. 'private' in Java)
-static void OpenTimer0(unsigned char intEnable);
+static void OpenTimer3(unsigned char intEnable);
+
+///
+/// INITIALISE TAPPING GRID
+///
+void HAPTIC_init(void)
+{
+    D_HAP_P1 = 0;
+    D_HAP_P2 = 0;
+    T_HAP_P1 = OUTPUT;
+    T_HAP_P2 = OUTPUT;
+}
+
+///
+/// INITIALISE TAPPING GRID
+///
+void TAP_init(void)
+{
+    LATB = 0x00;
+    TRISB = 0xF0;
+    INTCON2bits.RBPU = 0;   /* Turn on weak pull-up */ 
+}
 
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
@@ -38,27 +59,20 @@ static void OpenTimer0(unsigned char intEnable);
  ********************************************************************/
 void hardware_init(void) {
     ADCON1 = 0x0F;      //set all AD to digital
-#if SERVO_CHANNELS > 0
-    SERVO_init();
-#endif
-#if ADC_CHANNELS > 0
-    ADC_init();
-#endif
+    
 #if PWM_CHANNELS > 0
     PWM_init();
 #endif
-	OpenTimer0(FALSE);
+    
+    /* Initialise PORTB for detecting taps */
+    TAP_init();
+    
+    /* Initalise PWM (Timer 2) and Sampler (Timer 0) for Audio */
+    AUDIO_init();
+    
+	OpenTimer3(FALSE);
 }
 
-void init_tapping(void)
-{
-    LATB = 0x00;
-    TRISB = 0xF0;
-    INTCON2bits.RBPU = 0;   /* Turn on weak pull-up */ 
-    PORTA = 0x00;   // Initial PORTA
-    TRISA = 0x00;   // Define PORTA as output
-    ADCON1 = 0x0F;  // Turn off ADcon
-}
 
 /********************************************************************
  * Function:        void timed_to_1ms(void)
@@ -69,9 +83,16 @@ void init_tapping(void)
  *                  generates an overflow
  ********************************************************************/
 unsigned char timed_to_1ms(void) {
-	while(!INTCONbits.TMR0IF){Nop();};
-    TMR0L = 69;     // tuned to 1ms
-	INTCONbits.TMR0IF = 0;
+	while (!PIR2bits.TMR3IF)
+    {
+        /* Do nothing while interrupt flag is low, blocking function */
+        NOP();
+    };
+    
+    TMR3H = 0xD1;   /* First high byte */
+    TMR3L = 0xDF;   /* Then low, single operation */
+    
+	PIR2bits.TMR3IF = 0;
     return 1;
 }	
 
@@ -84,15 +105,11 @@ unsigned char timed_to_1ms(void) {
  *                  condition is  reached
  ********************************************************************/	
 void interrupt interrupt_handler(void) {
-#if SERVO_CHANNELS > 0
-    SERVO_ISR();
-#endif
-#if ADC_CHANNELS > 0
-    ADC_ISR();
-#endif
 #if PWM_CHANNELS > 0
     PWM_ISR();
 #endif
+    
+    AUDIO_ISR();
 }
 
 /********************************************************************/
@@ -104,16 +121,22 @@ void interrupt interrupt_handler(void) {
  * Output:          None
  * Overview:        Will initialize Timer0 given the parameters
  ********************************************************************/
-static void OpenTimer0(unsigned char intEnable) {
-    T0CONbits.T08BIT = 1;
-    T0CONbits.T0CS = 0;
-    T0CONbits.PSA = 0;
-    T0CONbits.T0PS = 0b101;
-    TMR0H = 0;                // Reset Timer0 to 0x0000
-    TMR0L = 69;
+static void OpenTimer3(unsigned char intEnable) 
+{
+    T3CONbits.T3RD16 = 1;   /* Read write in a single 16-bit operation */
     
-    INTCONbits.TMR0IE = intEnable & 0x01;
+    TMR3H = 0xD1;   /* First high byte */
+    TMR3L = 0xDF;   /* Then low, single 16-bit operation */
+    
+    T3CONbits.T3CKPS = 0b00;/* No postscaler */
+    T3CONbits.TMR3ON = 1;   /* Turn on  */
+    T3CONbits.TMR3CS = 0;   /* Internal clock source  */
+    T3CONbits.T3NSYNC = 1;  /* Do not synchronize */
+    
+    PIE2bits.TMR3IE = intEnable & 0x01;
     INTCONbits.GIE = (intEnable & 0x01) | INTCONbits.GIE;
-    INTCONbits.TMR0IF = 0;      // Clear Timer0 overflow flag
+    INTCONbits.PEIE = (intEnable & 0x01) | INTCONbits.PEIE;
+    IPR2bits.TMR3IP = 0;
+    PIR2bits.TMR3IF = 0;      // Clear Timer1 overflow flag
 }
 //EOF-------------------------------------------------------------------------

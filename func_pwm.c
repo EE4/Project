@@ -15,12 +15,13 @@
 /** P U B L I C   V A R I A B L E S *********************************/
 // in order for the variable to be used in other file, it also has to
 // be declared as 'extern' in the corresponding .h file
-unsigned char PWM_duty[PWM_CHANNELS];
+unsigned short PWM_duty[PWM_CHANNELS];
 
 /** P R I V A T E   V A R I A B L E S *******************************/
 // 'static' implies that the variable can only be used in this file
 // (cfr. 'private' in Java)
-static unsigned char counter;
+static unsigned short servo_counter;
+static unsigned short mode_counter;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 // 'static' implies that the function can only be used in this file
@@ -37,19 +38,28 @@ static void OpenTimer1(unsigned char intEnable);
  * Overview:        Initializes all output channels for the PWM process
  ********************************************************************/
 void PWM_init(void) {
-	counter = 0;
+    
+    /* Initialise counters */
+	servo_counter = 0;
+    mode_counter = 0;
+    
+    /* Initialise duty cycles */
 	for(int i = 0; i < PWM_CHANNELS; i++) {
         PWM_duty[i] = 0;
     }
+    
+    /* Set-up interrupt */
     OpenTimer1(TRUE);
 	
     /**** Initialize all PWM outputs ****/
-	LATBbits.LATB7 = 0;
-	TRISBbits.TRISB7 = 0;
-    //LATBbits.LATB3 = 0;
-	//TRISBbits.TRISB3 = 0;
-    //LATBbits.LATB2 = 0;
-	//TRISBbits.TRISB2 = 0;
+    D_SERVO = 0;
+    D_MODE1 = 0;
+    D_MODE2 = 0;
+    D_MODE3 = 0;
+    T_SERVO = OUTPUT;
+    T_MODE1 = OUTPUT;
+    T_MODE2 = OUTPUT;
+    T_MODE3 = OUTPUT;
     /************************************/
 }
 
@@ -63,14 +73,25 @@ void PWM_init(void) {
  ********************************************************************/
 void PWM_ISR(void) {
     if (PIR1bits.TMR1IF == 1) {
-        TMR1H = 209; // tuned to 100Hz
-        counter = (counter + 1) % 10;
+        /* Tuned to 20kHz interrupt frequency */
+        TMR1H = 0xFD; 
+        TMR1L = 0xA7;
         
-        /**** PWM logic for toggling on duty cycle ****/
-        LATBbits.LATB7 = (PWM_duty[0] > counter);
-        //LATBbits.LATB3 = (PWM_duty[1] > counter);
-        //LATBbits.LATB2 = (PWM_duty[2] > counter);
-        /**********************************************/
+        /* Tuned to 50Hz PWM-frequency with a resolution of 400, this
+         * is fixed by the 400 and the interrupt frequency, do not change */
+        servo_counter = (servo_counter + 1) % 400;
+        
+        /* Tuned to 100Hz PWM-frequency with a resolution of 200, this
+         * is fixed by the 200 and the interrupt frequency, do not change */
+        mode_counter = (mode_counter + 1) % 200;
+        
+        /* Toggle servo output on the duty cycle of the servo_counter */
+        D_SERVO = (PWM_duty[0] > servo_counter);
+        
+        /* Toggle mode leds on the duty cycle of the mode_counter */
+        D_MODE1 = (PWM_duty[1] > mode_counter);
+        D_MODE2 = (PWM_duty[1] > mode_counter);
+        D_MODE3 = (PWM_duty[1] > mode_counter);
         
         PIR1bits.TMR1IF = 0;
     }
@@ -90,8 +111,9 @@ static void OpenTimer1(unsigned char intEnable) {
     T1CONbits.TMR1CS = 0;
     T1CONbits.TMR1ON = 1;
 
-    TMR1H = 209;                // Tuned to 100Hz
-    TMR1L = 0;
+    /* Tuned to 20kHz interrupt frequency */
+    TMR1H = 0xFD;
+    TMR1L = 0xA7;
     
     PIE1bits.TMR1IE = intEnable & 0x01;
     INTCONbits.GIE = (intEnable & 0x01) | INTCONbits.GIE;

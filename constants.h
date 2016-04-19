@@ -16,11 +16,7 @@ extern "C" {
 typedef unsigned char uint8_t;
 
 /** C O N S T A N T S ***********************************************/
-#define NONE    (0)
-#define INDEX   (1)
-#define MIDDLE  (2)
-#define RING    (3)
-#define PINKY   (4)
+
 
 #ifdef	__cplusplus
 }

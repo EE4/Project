@@ -59,19 +59,20 @@ static unsigned char fsm_p2_sample(void)
      * by shifting to the right below so we don't have to take
      * this into account.
      */ 
-    TRISB |= (uint8_t)P1_CONTROL;
+    T_CTRL_P1 = INPUT;
     
-    /* Clear RB2, the control line of player 1 */
-    LATB &= (uint8_t)(~P2_CONTROL);
+    /* Clear RB3, the control line of player 2 */
+    D_CTRL_P2 = 0;
     
     /* Right justified value: inputs are at RB7:RB4 */
     sample = PORTB >> 4;
     
     /* Restore control lines */
-    LATB |= (uint8_t)(P1_CONTROL | P2_CONTROL);
+    D_CTRL_P1 = 1;
+    D_CTRL_P2 = 1;
     
     /* Make player 1 control line output again  */
-    TRISB &= (uint8_t)~P1_CONTROL;
+    T_CTRL_P1 = OUTPUT;
     
     return sample;
 }

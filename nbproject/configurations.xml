@@ -5,13 +5,14 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>config.h</itemPath>
-      <itemPath>func_adc.h</itemPath>
       <itemPath>func_pwm.h</itemPath>
-      <itemPath>func_servo.h</itemPath>
-      <itemPath>constants.h</itemPath>
       <itemPath>p1_tapping_fsm.h</itemPath>
       <itemPath>p2_tapping_fsm.h</itemPath>
       <itemPath>func_audio.h</itemPath>
+      <itemPath>sounds.h</itemPath>
+      <itemPath>func_score.h</itemPath>
+      <itemPath>feedback_fsm.h</itemPath>
+      <itemPath>func_display.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -21,19 +22,20 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>config.c</itemPath>
-      <itemPath>func_adc.c</itemPath>
       <itemPath>func_pwm.c</itemPath>
-      <itemPath>func_servo.c</itemPath>
       <itemPath>main.c</itemPath>
       <itemPath>p1_tapping_fsm.c</itemPath>
       <itemPath>p2_tapping_fsm.c</itemPath>
       <itemPath>func_audio.c</itemPath>
+      <itemPath>func_score.c</itemPath>
+      <itemPath>feedback_fsm.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>func_display.c</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

@@ -14,11 +14,11 @@
 /** D E F I N E S ***************************************************/
 #define NOTHING_PRESSED (0x0Fu)  /* NO FINGER PRESSED */
 #define P1_IDLE         NOTHING_PRESSED
-#define P1_F1_PRESSED   (0x0Eu)  /* RING FINGER     */
+#define P1_F1_PRESSED   (0x0Eu)  /* INDEX FINGER    */
 #define P1_F2_PRESSED   (0x0Du)  /* MIDDLE FINGER   */
 #define P1_F3_PRESSED   (0x0Bu)  /* RING FINGER     */
 #define P1_F4_PRESSED   (0x07u)  /* PINKY FINGER    */
-#define P1_F1_RELEASED  (0xF1u)  /* _RING   (Not a valid sample) */
+#define P1_F1_RELEASED  (0xF1u)  /* _INDEX  (Not a valid sample) */
 #define P1_F2_RELEASED  (0xF2u)  /* _MIDDLE (Not a valid sample) */
 #define P1_F3_RELEASED  (0xF4u)  /* _RING   (Not a valid sample) */
 #define P1_F4_RELEASED  (0xF8u)  /* _PINKY  (Not a valid sample) */
@@ -59,19 +59,20 @@ static unsigned char fsm_p1_sample(void)
      * by shifting to the right below so we don't have to take
      * this into account.
      */
-    TRISB |= (uint8_t)P2_CONTROL;
+    T_CTRL_P2 = INPUT;
     
     /* Clear RB2, the control line of player 1 */
-    PORTB &= (uint8_t)(~P1_CONTROL);
+    D_CTRL_P1 = 0;
     
     /* Right justified value: inputs are at RB7:RB4 */
     sample = PORTB >> 4;
     
     /* Restore control lines */
-    PORTB |= (uint8_t)(P1_CONTROL | P2_CONTROL);
+    D_CTRL_P1 = 1;
+    D_CTRL_P2 = 1;
     
-    /* Make player 1 control line output again  */
-    TRISB &= (uint8_t)(~P2_CONTROL);
+    /* Make player 2 control line output again  */
+    T_CTRL_P2 = OUTPUT;
     
     return sample;
 }

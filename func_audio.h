@@ -1,9 +1,11 @@
-/*
- * File:   func_audio.h
- * Author: jelle
- *
- * Created on April 14, 2016, 22:37 PM
- */
+//===----------------------------------------------------------------------===//
+//  
+//  EE4 Project - Finger Tapping Game
+//
+//  Author: Jelle De Vleeschouwer
+//  Created on April 14, 2016, 22:37 PM
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef __FUNC_AUDIO_H_
 #define	__FUNC_AUDIO_H_
@@ -12,9 +14,11 @@
 extern "C" {
 #endif
 
-#include "constants.h"
-
-
+#include "config.h"
+    
+void AUDIO_ISR(void);
+void AUDIO_init(void);
+void AUDIO_playSound(int to_play);
 
 #ifdef	__cplusplus
 }
