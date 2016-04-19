@@ -22,24 +22,27 @@ static int counter;
 //#define FALSE 0 
 
 /*
- *  These are also already provided by config.h
+ *  Check which are already in config and which are
+ *  mode-specific
  */
 static bool p1tap;
 static bool p2tap;
 static bool p1lock;
 static bool p2lock;
-static int arrow;
-static bool audio;
-static bool motor;
-static bool gloves;
-static int lives;
-static int modes;
-static bool pattern;
-static bool hapticFeedback;
-static int trafficLights;
+//static int arrow;
+//static bool audio;
+//static bool motor;
+//static bool gloves;
+
+static int lives ;
+
+//static int modes;
+//static bool pattern;
+//static bool hapticFeedback;
+//static int trafficLights;
 
 static enum {
-    INITIALIZE,
+    INITIALIZE = 0,
     LIGHT_RED,
     LIGHT_YELLOW,
     LIGHT_GREEN,
@@ -60,35 +63,49 @@ static void mode3(void);
 void main(void) {
     return;
 }
-
+/* Redundant
 static void init(void){
      current_state = INITIALIZE ;
      counter = 0;
 }
+ */
 
 void mode3_fsm(void){
-
+    
     switch (current_state) {                
         case INITIALIZE:
-            motor = FALSE;
-            gloves = TRUE;
-            lives = 5;
-            modes = 2;
-            pattern = 0;
-            audio = 0;
-            hapticFeedback = 0;
-            arrow = 16;
-            LEDS_Update();
-            ARROW_SetPosition(16);
-            ARROW_UpdateArrow();
+            
+            // motor = FALSE;
+            SCORE_setScore(0);
+            
+            LIVES_setLives(PLAYER_1, 5);
+            LIVES_setLives(PLAYER_2, 5);
+            
+            MODE_setMode(2);
+            
+            PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+            PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+            
+            STATE_setState(PLAYER_1, STATE_NONE);
+            STATE_setState(PLAYER_2, STATE_NONE);
+            
+            feedback_p1 = 0;
+            feedback_p2 = 0;
+            
+            LEDS_update();
+            
+            /* Uncondtional transition */
             current_state = LIGHT_RED;
             break;
             
         case LIGHT_RED:
-            trafficLights=001;
+            
+            STATE_setState(PLAYER_1, STATE_READY);
+            STATE_setState(PLAYER_2, STATE_READY);
+            
              LEDS_Update();
              audio = 1;
-            update_Audio();
+             update_Audio();
              counter++;
              if (counter == 1000) current_state = LIGHT_YELLOW;
             break; 
