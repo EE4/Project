@@ -99,6 +99,25 @@ static unsigned char STATE_translate(player_state_t state)
     return (unsigned char)(_state << 4);
 }
 
+
+static void SIPO_do_write_byte(char a)
+{
+    /* Shift out 8 bits on rising clock edge */
+    for (int i = 0; i < 8; i++) {
+        /* Put bit at index on data pin */
+        D_SERIAL_O = (a >> i) & 0x01;
+
+        /* Give a rising edge to sample data-pin */
+        D_SERIAL_CK = 1;
+
+        /* Give certain amount of time to sample */
+        NOP();
+
+        /* Turn off CLK */
+        D_SERIAL_CK = 0;
+    }
+}
+
 //===----------------------------------------------------------------------===//
 //  PUBLIC PROTOTYPES
 //===----------------------------------------------------------------------===//
@@ -146,4 +165,31 @@ unsigned char LIVES_getLives(player_t player)
         /* Do nothing */
         return 0;
     }
+}
+
+void LEDS_update(void)
+{
+    /* Output enable on */
+    D_SERIAL_OE = 1;
+    
+    /*
+     *  UPDATE THIS ORDER ACCORDING TO HOW
+     *  THE DIFFERENT SIPO'S ARE CONNECTED IN
+     *  THE CHAIN.
+     */
+    SIPO_do_write_byte(lives_p1);
+    SIPO_do_write_byte(pattern_p1);
+    SIPO_do_write_byte(pattern_p2);
+    SIPO_do_write_byte(lives_p2);
+    
+    /* Strobe high to put serial data on 
+     * parallel outputs */
+    D_STROBE = 1;
+
+    /* Give the SIPO the time to sample strobe and
+     * to put data on outputs */
+    NOP();
+
+    /* Strobe low */
+    D_STROBE = 0;
 }
