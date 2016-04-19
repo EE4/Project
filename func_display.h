@@ -22,6 +22,7 @@ void PATTERN_setPattern(player_t player, pattern_t pattern);
 void STATE_setState(player_t player, player_state_t state);
 void LIVES_setLives(player_t player, unsigned char lives);
 unsigned char LIVES_getLives(player_t player);
+void MODE_setMode(unsigned char mode);
 
 #ifdef	__cplusplus
 }
