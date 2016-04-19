@@ -17,29 +17,20 @@ static int counter;
  *  These are already defined in config.h
  */
 
-//typedef int bool;
-//#define TRUE 1
-//#define FALSE 0 
+
 
 /*
  *  Check which are already in config and which are
  *  mode-specific
  */
-static bool p1tap;
-static bool p2tap;
+
 static bool p1lock;
 static bool p2lock;
-//static int arrow;
-//static bool audio;
-//static bool motor;
-//static bool gloves;
+static int arrow;
+
 
 static int lives ;
 
-//static int modes;
-//static bool pattern;
-//static bool hapticFeedback;
-//static int trafficLights;
 
 static enum {
     INITIALIZE = 0,
@@ -57,18 +48,13 @@ static enum {
     GAME_OVER
 } current_state;
         
-static void init(void);
+
 static void mode3(void);
 
 void main(void) {
     return;
 }
-/* Redundant
-static void init(void){
-     current_state = INITIALIZE ;
-     counter = 0;
-}
- */
+
 
 void mode3_fsm(void){
     
@@ -104,33 +90,34 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_2, STATE_READY);
             
              LEDS_Update();
-             audio = 1;
-             update_Audio();
+            AUDIO_playSound(SOUND_READY);
              counter++;
              if (counter == 1000) current_state = LIGHT_YELLOW;
             break; 
             
         case LIGHT_YELLOW:
-            trafficLights = 010;
+            STATE_setState(PLAYER_1, STATE_SET);
+            STATE_setState(PLAYER_2, STATE_SET);
+            
              LEDS_Update();
-             audio = 1;
-            update_Audio();
+             AUDIO_playSound(SOUND_SET);
              counter++;
              if (counter == 2000) current_state = LIGHT_GREEN;
               break;   
               
         case LIGHT_GREEN: 
-            trafficLights = 100;
+            STATE_setState(PLAYER_1, STATE_GO);
+            STATE_setState(PLAYER_2, STATE_GO);
+            
              LEDS_Update();
-             audio = 1;
-            update_Audio();
+             AUDIO_playSound(SOUND_GO);
              counter++;
              if (counter == 3000) current_state = PLAY;
          break;
          
         case PLAY:
-            if (p1tap == TRUE) current_state = P1_TAP;
-            if (p2tap == TRUE) current_state = P2_TAP;
+            if ( p1_pressed == TRUE) current_state = P1_TAP;
+            if ( p2_pressed == TRUE) current_state = P2_TAP;
              break;
              
         case P1_TAP:
@@ -138,8 +125,8 @@ void mode3_fsm(void){
              arrow++;
             ARROW_SetPosition(arrow);
             ARROW_UpdateArrow();
-            if (p2tap == TRUE&&p2lock == FALSE) current_state = P2_TAP;
-            if(arrow>26) current_state = P1_WIN;
+            if (p2_pressed == TRUE&&p2lock == FALSE) current_state = P2_TAP;
+            if(arrow>10) current_state = P1_WIN;
             else (current_state = IDLE);
              break;
              
@@ -148,16 +135,16 @@ void mode3_fsm(void){
             arrow--;
             ARROW_SetPosition(arrow);
             ARROW_UpdateArrow();
-            if (p1tap == TRUE&&p1lock == FALSE) current_state = P1_TAP;
-             if(arrow<6) current_state = P2_WIN;
+            if (p1_pressed  == TRUE&&p1lock == FALSE) current_state = P1_TAP;
+             if(arrow<-10) current_state = P2_WIN;
             else (current_state = IDLE);
              break;
              
         case IDLE:
-             if (p2tap == TRUE&&p2lock == FALSE) current_state = P2_TAP;
-             if (p1tap == TRUE&&p1lock == FALSE) current_state = P1_TAP;
-             if (p1tap == FALSE&&p1lock == TRUE) current_state = P1_UNLOCK;
-             if (p2tap == FALSE&&p2lock == TRUE) current_state = P2_UNLOCK;
+             if (p2_pressed == TRUE&&p2lock == FALSE) current_state = P2_TAP;
+             if (p1_pressed  == TRUE&&p1lock == FALSE) current_state = P1_TAP;
+             if (p1_pressed  == FALSE&&p1lock == TRUE) current_state = P1_UNLOCK;
+             if (p2_pressed == FALSE&&p2lock == TRUE) current_state = P2_UNLOCK;
              break;
              
         case P1_UNLOCK:
@@ -171,13 +158,11 @@ void mode3_fsm(void){
                 break; 
                 
         case P1_WIN :
-            audio = 1;
-            update_Audio();
+            AUDIO_playSound(SOUND_WON);
              current_state = GAME_OVER;
                  break;
         case P2_WIN :
-            audio = 1;
-            update_Audio();
+            AUDIO_playSound(SOUND_WON);
             current_state = GAME_OVER;
                  break;
         case GAME_OVER :
