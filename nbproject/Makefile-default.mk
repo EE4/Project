@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=config.c func_pwm.c main.c p1_tapping_fsm.c p2_tapping_fsm.c func_audio.c func_score.c feedback_fsm.c func_display.c
+SOURCEFILES_QUOTED_IF_SPACED=config.c func_pwm.c main.c p1_tapping_fsm.c p2_tapping_fsm.c func_audio.c func_score.c feedback_fsm.c func_display.c display_pattern_fsm.c mode3_fsm.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/config.p1 ${OBJECTDIR}/func_pwm.p1 ${OBJECTDIR}/main.p1 ${OBJECTDIR}/p1_tapping_fsm.p1 ${OBJECTDIR}/p2_tapping_fsm.p1 ${OBJECTDIR}/func_audio.p1 ${OBJECTDIR}/func_score.p1 ${OBJECTDIR}/feedback_fsm.p1 ${OBJECTDIR}/func_display.p1
-POSSIBLE_DEPFILES=${OBJECTDIR}/config.p1.d ${OBJECTDIR}/func_pwm.p1.d ${OBJECTDIR}/main.p1.d ${OBJECTDIR}/p1_tapping_fsm.p1.d ${OBJECTDIR}/p2_tapping_fsm.p1.d ${OBJECTDIR}/func_audio.p1.d ${OBJECTDIR}/func_score.p1.d ${OBJECTDIR}/feedback_fsm.p1.d ${OBJECTDIR}/func_display.p1.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/config.p1 ${OBJECTDIR}/func_pwm.p1 ${OBJECTDIR}/main.p1 ${OBJECTDIR}/p1_tapping_fsm.p1 ${OBJECTDIR}/p2_tapping_fsm.p1 ${OBJECTDIR}/func_audio.p1 ${OBJECTDIR}/func_score.p1 ${OBJECTDIR}/feedback_fsm.p1 ${OBJECTDIR}/func_display.p1 ${OBJECTDIR}/display_pattern_fsm.p1 ${OBJECTDIR}/mode3_fsm.p1
+POSSIBLE_DEPFILES=${OBJECTDIR}/config.p1.d ${OBJECTDIR}/func_pwm.p1.d ${OBJECTDIR}/main.p1.d ${OBJECTDIR}/p1_tapping_fsm.p1.d ${OBJECTDIR}/p2_tapping_fsm.p1.d ${OBJECTDIR}/func_audio.p1.d ${OBJECTDIR}/func_score.p1.d ${OBJECTDIR}/feedback_fsm.p1.d ${OBJECTDIR}/func_display.p1.d ${OBJECTDIR}/display_pattern_fsm.p1.d ${OBJECTDIR}/mode3_fsm.p1.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/config.p1 ${OBJECTDIR}/func_pwm.p1 ${OBJECTDIR}/main.p1 ${OBJECTDIR}/p1_tapping_fsm.p1 ${OBJECTDIR}/p2_tapping_fsm.p1 ${OBJECTDIR}/func_audio.p1 ${OBJECTDIR}/func_score.p1 ${OBJECTDIR}/feedback_fsm.p1 ${OBJECTDIR}/func_display.p1
+OBJECTFILES=${OBJECTDIR}/config.p1 ${OBJECTDIR}/func_pwm.p1 ${OBJECTDIR}/main.p1 ${OBJECTDIR}/p1_tapping_fsm.p1 ${OBJECTDIR}/p2_tapping_fsm.p1 ${OBJECTDIR}/func_audio.p1 ${OBJECTDIR}/func_score.p1 ${OBJECTDIR}/feedback_fsm.p1 ${OBJECTDIR}/func_display.p1 ${OBJECTDIR}/display_pattern_fsm.p1 ${OBJECTDIR}/mode3_fsm.p1
 
 # Source Files
-SOURCEFILES=config.c func_pwm.c main.c p1_tapping_fsm.c p2_tapping_fsm.c func_audio.c func_score.c feedback_fsm.c func_display.c
+SOURCEFILES=config.c func_pwm.c main.c p1_tapping_fsm.c p2_tapping_fsm.c func_audio.c func_score.c feedback_fsm.c func_display.c display_pattern_fsm.c mode3_fsm.c
 
 
 CFLAGS=
@@ -153,6 +153,22 @@ ${OBJECTDIR}/func_display.p1: func_display.c  nbproject/Makefile-${CND_CONF}.mk
 	@-${MV} ${OBJECTDIR}/func_display.d ${OBJECTDIR}/func_display.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/func_display.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
+${OBJECTDIR}/display_pattern_fsm.p1: display_pattern_fsm.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/display_pattern_fsm.p1.d 
+	@${RM} ${OBJECTDIR}/display_pattern_fsm.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=none  --double=24 --float=24 --emi=wordwrite --opt=default,+asm,+asmfile,-speed,+space,-debug --addrqual=ignore --mode=free -P -N255 --warn=-3 --asmlist --summary=default,-psect,-class,+mem,-hex,-file --codeoffset=0x800 --output=default,+inhx032 --runtime=default,+clear,+init,-keep,-no_startup,+download,+config,+clib,-plib --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/display_pattern_fsm.p1  display_pattern_fsm.c 
+	@-${MV} ${OBJECTDIR}/display_pattern_fsm.d ${OBJECTDIR}/display_pattern_fsm.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/display_pattern_fsm.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
+${OBJECTDIR}/mode3_fsm.p1: mode3_fsm.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/mode3_fsm.p1.d 
+	@${RM} ${OBJECTDIR}/mode3_fsm.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=none  --double=24 --float=24 --emi=wordwrite --opt=default,+asm,+asmfile,-speed,+space,-debug --addrqual=ignore --mode=free -P -N255 --warn=-3 --asmlist --summary=default,-psect,-class,+mem,-hex,-file --codeoffset=0x800 --output=default,+inhx032 --runtime=default,+clear,+init,-keep,-no_startup,+download,+config,+clib,-plib --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/mode3_fsm.p1  mode3_fsm.c 
+	@-${MV} ${OBJECTDIR}/mode3_fsm.d ${OBJECTDIR}/mode3_fsm.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/mode3_fsm.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
 else
 ${OBJECTDIR}/config.p1: config.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -225,6 +241,22 @@ ${OBJECTDIR}/func_display.p1: func_display.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=default,+asm,+asmfile,-speed,+space,-debug --addrqual=ignore --mode=free -P -N255 --warn=-3 --asmlist --summary=default,-psect,-class,+mem,-hex,-file --codeoffset=0x800 --output=default,+inhx032 --runtime=default,+clear,+init,-keep,-no_startup,+download,+config,+clib,-plib --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/func_display.p1  func_display.c 
 	@-${MV} ${OBJECTDIR}/func_display.d ${OBJECTDIR}/func_display.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/func_display.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
+${OBJECTDIR}/display_pattern_fsm.p1: display_pattern_fsm.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/display_pattern_fsm.p1.d 
+	@${RM} ${OBJECTDIR}/display_pattern_fsm.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=default,+asm,+asmfile,-speed,+space,-debug --addrqual=ignore --mode=free -P -N255 --warn=-3 --asmlist --summary=default,-psect,-class,+mem,-hex,-file --codeoffset=0x800 --output=default,+inhx032 --runtime=default,+clear,+init,-keep,-no_startup,+download,+config,+clib,-plib --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/display_pattern_fsm.p1  display_pattern_fsm.c 
+	@-${MV} ${OBJECTDIR}/display_pattern_fsm.d ${OBJECTDIR}/display_pattern_fsm.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/display_pattern_fsm.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
+${OBJECTDIR}/mode3_fsm.p1: mode3_fsm.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/mode3_fsm.p1.d 
+	@${RM} ${OBJECTDIR}/mode3_fsm.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=default,+asm,+asmfile,-speed,+space,-debug --addrqual=ignore --mode=free -P -N255 --warn=-3 --asmlist --summary=default,-psect,-class,+mem,-hex,-file --codeoffset=0x800 --output=default,+inhx032 --runtime=default,+clear,+init,-keep,-no_startup,+download,+config,+clib,-plib --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/mode3_fsm.p1  mode3_fsm.c 
+	@-${MV} ${OBJECTDIR}/mode3_fsm.d ${OBJECTDIR}/mode3_fsm.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/mode3_fsm.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
 endif
 

@@ -21,9 +21,36 @@ static enum {
 static unsigned short timer_p1;
 static unsigned short timer_p2;
 
+static bool feedback_p1;
+static bool feedback_p2;
+
 //===----------------------------------------------------------------------===//
-//  PUBLIC PROTOTYPES
+//  API FUNCTIONS
 //===----------------------------------------------------------------------===//
+
+void FEEDBACK_giveFeedback(unsigned char player)
+{
+    if (PLAYER_1 == player) {
+        feedback_p1 = TRUE;
+    } else if (PLAYER_2 == player) {
+        feedback_p2 = TRUE;
+    } else {
+        /* Do nothing, shouldn't happen */
+    }
+}
+
+//===----------------------------------------------------------------------===//
+//  PUBLIC FUNCTIONS
+//===----------------------------------------------------------------------===//
+
+void feedback_fsm_init(void)
+{
+    state = HAPTIC_IDLE;
+    timer_p1 = 0;
+    timer_p2 = 0;
+    feedback_p1 = FALSE;
+    feedback_p2 = FALSE;
+}
 
 void feedback_fsm(void)
 {

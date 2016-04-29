@@ -13,16 +13,25 @@ extern "C" {
 #endif
 
 #include "config.h"
-    
+
 //===----------------------------------------------------------------------===//
-//  PUBLIC PROTOTYPES
+//  API PROTOTYPES
 //===----------------------------------------------------------------------===//
 
-void PATTERN_setPattern(player_t player, pattern_t pattern);
-void STATE_setState(player_t player, player_state_t state);
-void LIVES_setLives(player_t player, unsigned char lives);
-unsigned char LIVES_getLives(player_t player);
-void MODE_setMode(unsigned char mode);
+/*
+ *  Function to set a LED-buffer with
+ */
+void PATTERN_setPattern(unsigned char, unsigned char);
+void STATE_setState(unsigned char, unsigned char);
+void LIVES_setLives(unsigned char, unsigned char);
+unsigned char LIVES_getLives(unsigned char);
+void MODE_setMode(unsigned char);
+
+/*
+ *  Function to update entire SIPO-chain
+ */
+void LEDS_init(void);
+void LEDS_update(void);
 
 #ifdef	__cplusplus
 }

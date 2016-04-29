@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Project
+PROJECTNAME=EE4_project.X
 
 # Active Configuration
 DEFAULTCONF=default

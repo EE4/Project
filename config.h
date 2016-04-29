@@ -14,6 +14,7 @@
 
 /** I N C L U D E S *************************************************/
 #include <xc.h>
+#include <pic18f2550.h>
 
 /** LOW LEVEL FUNCTIONS **/
 #include "func_score.h"
@@ -91,50 +92,50 @@ typedef int bool;
 typedef unsigned char uint8_t;
 
 /* Possible players */
-typedef enum player {
-    PLAYER_1 = 0,
-    PLAYER_2,
-} player_t;
+#define PLAYER_1        (0u)
+#define PLAYER_2        (1u)
 
-#define PLAYER_1    (0)
-#define PLAYER_2    (1)
+/* Possible patterns to display */
+#define PATTERN_NONE    (0u)
+#define PATTERN_INDEX   (1u)
+#define PATTERN_MIDDLE  (2u)
+#define PATTERN_RING    (3u)
+#define PATTERN_PINKY   (4u)
+#define PATTERN_ALL     (5u)
 
-/* Possible pattern to display */
-typedef enum pattern {
-    PATTERN_NONE = 0,
-    PATTERN_INDEX,
-    PATTERN_MIDDLE,
-    PATTERN_RING,
-    PATTERN_PINKY
-} pattern_t;
+/* Possible sounds to play */
+#define SOUND_NONE      (0u)
+#define SOUND_TAP       (1u)
+#define SOUND_SELECT    (2u)
+#define SOUND_READY     (4u)
+#define SOUND_SET       (5u)
+#define SOUND_GO        (6u)
+#define SOUND_WON       (7u)
+#define SOUND_LOST      (8u)
 
-/* Possible sounds to play; */
-typedef enum sound_e {
-    SOUND_NONE = 0,
-    SOUND_TAP,
-    SOUND_SELECT,
-    SOUND_READY,
-    SOUND_SET,
-    SOUND_GO,
-    SOUND_WON,
-    SOUND_LOST
-} sound_t;
+typedef char sound_t;
 
 /* Possible player states */
-typedef enum player_state {
-    STATE_NONE = 0,
-    STATE_GO,
-    STATE_SET,
-    STATE_READY
-} player_state_t;
-//===----------------------------------------------------------------------===//
+#define STATE_NONE      (0u)
+#define STATE_GO        (1u)
+#define STATE_SET       (2u)
+#define STATE_READY     (3u)
 
+//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //  GLOBAL VARIABLES
 //===----------------------------------------------------------------------===//
 // when a variable is declared 'extern' it also has to be declared in
 // the corresponding .c file without the 'extern' keyword
+
+//===----------------------------------------------------------------------===//
+//  PATTERN DISPLAY
+//===----------------------------------------------------------------------===//
+
+#define MAX_PATTERNS (10u)
+
+extern bool pattern_done;
 
 //===----------------------------------------------------------------------===//
 //  FINGER TAPPING
@@ -147,9 +148,6 @@ extern unsigned char p2_pressed;
 //===----------------------------------------------------------------------===//
 /* Duration of feedback in ms */
 #define FEEDBACK_DURATION (200)
-
-extern bool feedback_p1;
-extern bool feedback_p2;
 
 //===----------------------------------------------------------------------===//
 //  API

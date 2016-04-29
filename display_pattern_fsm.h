@@ -1,29 +1,29 @@
 /* 
- * File:   p2_tapping_fsm.h
+ * File:   display_pattern_fsm.h
  * Author: jelle
  *
- * Created on April 12, 2016, 3:27 PM
+ * Created on April 19, 2016, 2:39 PM
  */
 
-#ifndef __P2_TAPPING_FSM
-#define	__P2_TAPPING_FSM
+#ifndef __DISPLAY_PATTERN_FSM_H_
+#define	__DISPLAY_PATTERN_FSM_H_
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
 #include "config.h"
-    
+
 //===----------------------------------------------------------------------===//
-//  PUBLIC PROTOTYPES
+//  PUBLIC FUNCTIONS
 //===----------------------------------------------------------------------===//
 
-void p2_tapping_fsm_init(void);
-void p2_tapping_fsm(void);
+void display_pattern_fsm_init(void);
+void display_pattern_fsm(void);
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif	/* __P2_TAPPING_FSM */
+#endif	/* __DISPLAY_PATTERN_FSM_H_ */
 

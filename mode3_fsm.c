@@ -12,25 +12,10 @@
 #include "mode3_fsm.h"
 
 static int counter;
-
-/*
- *  These are already defined in config.h
- */
-
-
-
-/*
- *  Check which are already in config and which are
- *  mode-specific
- */
-
 static bool p1lock;
 static bool p2lock;
 static int arrow;
-
-
-static int lives ;
-
+static int lives;
 
 static enum {
     INITIALIZE = 0,
@@ -48,20 +33,11 @@ static enum {
     GAME_OVER
 } current_state;
         
-
-static void mode3(void);
-
-void main(void) {
-    return;
-}
-
-
 void mode3_fsm(void){
     
     switch (current_state) {                
         case INITIALIZE:
             
-            // motor = FALSE;
             SCORE_setScore(0);
             
             LIVES_setLives(PLAYER_1, 5);
@@ -75,9 +51,6 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_1, STATE_NONE);
             STATE_setState(PLAYER_2, STATE_NONE);
             
-            feedback_p1 = 0;
-            feedback_p2 = 0;
-            
             LEDS_update();
             
             /* Uncondtional transition */
@@ -89,10 +62,12 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_1, STATE_READY);
             STATE_setState(PLAYER_2, STATE_READY);
             
-             LEDS_Update();
+            LEDS_Update();
+            
             AUDIO_playSound(SOUND_READY);
              counter++;
-             if (counter == 1000) current_state = LIGHT_YELLOW;
+             if (counter == 1000) 
+                 current_state = LIGHT_YELLOW;
             break; 
             
         case LIGHT_YELLOW:

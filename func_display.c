@@ -6,6 +6,7 @@
  */
 
 #include "func_display.h"
+#include "config.h"
 
 //===----------------------------------------------------------------------===//
 //  CONSTANTS
@@ -47,10 +48,12 @@ static uint8_t lives_p2;
 //  PRIVATE PROTOTYPES
 //===----------------------------------------------------------------------===//
 
-static unsigned char PATTERN_translate(pattern_t pattern)
+static unsigned char PATTERN_translate(unsigned char pattern)
 {
     if (PATTERN_NONE == pattern)
         return (unsigned char)0;
+    else if (PATTERN_ALL == pattern)
+        return (unsigned char)0xFF;
     
     /* Shift according to pattern */
     return (0x01 << ((int)pattern - 1));
@@ -88,7 +91,7 @@ static unsigned char LIVE_inv_translate(unsigned char lives)
     return lives_left;
 }
 
-static unsigned char STATE_translate(player_state_t state)
+static unsigned char STATE_translate(unsigned char state)
 {
     unsigned char _state = 0x01 << (state - 1);
     
@@ -98,7 +101,6 @@ static unsigned char STATE_translate(player_state_t state)
     /* Now format bits like they are connected to the SIPO */
     return (unsigned char)(_state << 4);
 }
-
 
 static void SIPO_do_write_byte(char a)
 {
@@ -122,7 +124,7 @@ static void SIPO_do_write_byte(char a)
 //  PUBLIC PROTOTYPES
 //===----------------------------------------------------------------------===//
 
-void PATTERN_setPattern(player_t player, pattern_t pattern)
+void PATTERN_setPattern(unsigned char player, unsigned char pattern)
 {   
     if (PLAYER_1 == player) {
         pattern_p1 = PATTERN_translate(pattern);
@@ -133,7 +135,7 @@ void PATTERN_setPattern(player_t player, pattern_t pattern)
     }
 }
 
-void STATE_setState(player_t player, player_state_t state)
+void STATE_setState(unsigned char player, unsigned char state)
 {
     if (PLAYER_1 == player) {
         lives_p1 = (lives_p1 & STATE_MASK) | STATE_translate(state);
@@ -144,18 +146,19 @@ void STATE_setState(player_t player, player_state_t state)
     }
 }
 
-void LIVES_setLives(player_t player, unsigned char lives)
+void LIVES_setLives(unsigned char player, unsigned char lives)
 {   
     if (PLAYER_1 == player) {
-        lives_p1 = (lives_p1 & LIVES_MASK) | STATE_translate(lives);
+        lives_p1 = lives;
+        //lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
     } else if (PLAYER_2 == player) {
-        lives_p2 = (lives_p2 & LIVES_MASK) | STATE_translate(lives);
+        lives_p2 = (lives_p2 & LIVES_MASK) | LIVES_translate(lives);
     } else {
         /* Do nothing */
     }
 }
 
-unsigned char LIVES_getLives(player_t player)
+unsigned char LIVES_getLives(unsigned char player)
 {
     if (PLAYER_1 == player) {
         return LIVE_inv_translate(lives_p1);
@@ -165,6 +168,14 @@ unsigned char LIVES_getLives(player_t player)
         /* Do nothing */
         return 0;
     }
+}
+
+void LEDS_init(void)
+{
+    T_SERIAL_OE = OUTPUT;
+    T_SERIAL_CK = OUTPUT;
+    T_SERIAL_O  = OUTPUT;
+    T_STROBE    = OUTPUT;
 }
 
 void LEDS_update(void)
@@ -178,9 +189,9 @@ void LEDS_update(void)
      *  THE CHAIN.
      */
     SIPO_do_write_byte(lives_p1);
-    SIPO_do_write_byte(pattern_p1);
-    SIPO_do_write_byte(pattern_p2);
-    SIPO_do_write_byte(lives_p2);
+    //SIPO_do_write_byte(pattern_p1);
+    //SIPO_do_write_byte(pattern_p2);
+    //SIPO_do_write_byte(lives_p2);
     
     /* Strobe high to put serial data on 
      * parallel outputs */
@@ -192,4 +203,6 @@ void LEDS_update(void)
 
     /* Strobe low */
     D_STROBE = 0;
+    
+    D_SERIAL_OE = 1;
 }

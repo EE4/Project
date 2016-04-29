@@ -15,10 +15,22 @@
 
 /** P R I V A T E   V A R I A B L E S *******************************/
 unsigned int counter;
-unsigned int counter_servo;
+unsigned int led_counter;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 static void init(void);
+
+
+char rotateByte(char a)
+{
+    unsigned char temp = 0;
+    
+    temp = a;
+    a = a >> 1;
+    a |= (temp << 7) & 0x80;
+    
+    return a;
+}
 
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
@@ -32,17 +44,29 @@ static void init(void);
 void main(void) {
 	init();						//initialize the system
     
-    SCORE_setScore(0);
+    LEDS_init();
+    
+    LIVES_setLives(PLAYER_1, 0);
+    LEDS_update();
+    led_counter = 0x01;
 	while(timed_to_1ms()) {
-        
+        counter++;
+        if (counter == 100) {
+            counter = 0;
+            led_counter = rotateByte(led_counter);
+            LIVES_setLives(PLAYER_1, led_counter);
+            LEDS_update();
+        }
         //**** put here a reference to one or more FSM's
         //p1_tapping_fsm();
         //p2_tapping_fsm();
-        if ((++counter) == 20) {
-            PWM_duty[1] = (PWM_duty[1] + 2) % 200;
-            counter = 0;
-        }
+        //if ((++counter) == 20) {
+            //PWM_duty[1] = (PWM_duty[1] + 2) % 200;
+            //counter = 0;
+        //}
+        
 	}
+    
 }
 
 /********************************************************************/

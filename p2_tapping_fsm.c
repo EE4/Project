@@ -6,9 +6,6 @@
  */
 
 /** I N C L U D E S *************************************************/
-#include <xc.h>
-#include <pic18f2550.h>
-#include "config.h"
 #include "p2_tapping_fsm.h"
 
 /** D E F I N E S ***************************************************/
@@ -75,6 +72,13 @@ static unsigned char fsm_p2_sample(void)
     T_CTRL_P1 = OUTPUT;
     
     return sample;
+}
+
+void p2_tapping_fsm_init(void)
+{
+    state = P2_IDLE;
+    p2_timer_20ms = 20;
+    p2_pressed = 0;
 }
 
 /********************************************************************/

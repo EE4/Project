@@ -11,7 +11,14 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    
+#include "config.h"
+    
+//===----------------------------------------------------------------------===//
+//  PUBLIC PROTOTYPES
+//===----------------------------------------------------------------------===//
 
+void p1_tapping_fsm_init(void);
 void p1_tapping_fsm(void);
 
 #ifdef	__cplusplus
