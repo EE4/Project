@@ -12,8 +12,10 @@
 extern "C" {
 #endif
 
-
-
+#include "config.h"
+    
+void mode_1_init(void);
+void mode_1_fsm(void);
 
 #ifdef	__cplusplus
 }

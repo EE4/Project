@@ -14,6 +14,9 @@
       <itemPath>feedback_fsm.h</itemPath>
       <itemPath>func_display.h</itemPath>
       <itemPath>mode_1.h</itemPath>
+      <itemPath>mode3_fsm.h</itemPath>
+      <itemPath>display_pattern_fsm.h</itemPath>
+      <itemPath>func_rand.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -30,14 +33,18 @@
       <itemPath>func_audio.c</itemPath>
       <itemPath>func_score.c</itemPath>
       <itemPath>feedback_fsm.c</itemPath>
+      <itemPath>display_pattern_fsm.c</itemPath>
+      <itemPath>func_rand.c</itemPath>
+      <itemPath>func_display.c</itemPath>
+      <itemPath>mode_2.c</itemPath>
       <itemPath>mode_1.c</itemPath>
+      <itemPath>mode3_fsm.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>func_display.c</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

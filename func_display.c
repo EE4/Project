@@ -102,6 +102,26 @@ static unsigned char STATE_translate(unsigned char state)
     return (unsigned char)(_state << 4);
 }
 
+static void MODE_doSet(unsigned char mode, bool value)
+{
+    switch (mode) {
+        case 0:
+            break;
+        case MODE_1:
+            D_MODE1 = value;
+            break;
+        case MODE_2:
+            D_MODE2 = value;
+            break;
+        case MODE_3:
+            D_MODE3 = value;
+            break;
+        default:
+            /* Do nothing */
+            NOP();
+    }
+}
+
 static void SIPO_do_write_byte(char a)
 {
     /* Shift out 8 bits on rising clock edge */
@@ -149,8 +169,7 @@ void STATE_setState(unsigned char player, unsigned char state)
 void LIVES_setLives(unsigned char player, unsigned char lives)
 {   
     if (PLAYER_1 == player) {
-        lives_p1 = lives;
-        //lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
+        lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
     } else if (PLAYER_2 == player) {
         lives_p2 = (lives_p2 & LIVES_MASK) | LIVES_translate(lives);
     } else {
@@ -168,6 +187,16 @@ unsigned char LIVES_getLives(unsigned char player)
         /* Do nothing */
         return 0;
     }
+}
+
+void MODE_setMode(unsigned char mode)
+{
+    MODE_doSet(mode, TRUE);
+}
+
+void MODE_clrMode(unsigned char mode)
+{
+    MODE_doSet(mode, FALSE);
 }
 
 void LEDS_init(void)

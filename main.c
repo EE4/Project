@@ -14,14 +14,19 @@
 /** D E F I N E S ***************************************************/
 
 /** P R I V A T E   V A R I A B L E S *******************************/
+static unsigned char seed_time; /* Value to seed */
+
 unsigned int counter;
 unsigned int led_counter;
+
+unsigned char round;
+bool game_ended;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 static void init(void);
 
 
-char rotateByte(char a)
+char rl(char a)
 {
     unsigned char temp = 0;
     
@@ -43,20 +48,25 @@ char rotateByte(char a)
  ******************************************s**************************/
 void main(void) {
 	init();						//initialize the system
-    
+    int var = 0;
     LEDS_init();
     
     LIVES_setLives(PLAYER_1, 0);
     LEDS_update();
     led_counter = 0x01;
 	while(timed_to_1ms()) {
+        
+        RAND_seed(seed_time++); /* Try to seed the RNG - seed_time can overflow, 
+                                 * but we don't care #YOLO */
+        
         counter++;
         if (counter == 100) {
             counter = 0;
-            led_counter = rotateByte(led_counter);
+            led_counter = rl(led_counter);
             LIVES_setLives(PLAYER_1, led_counter);
             LEDS_update();
         }
+        
         //**** put here a reference to one or more FSM's
         //p1_tapping_fsm();
         //p2_tapping_fsm();

@@ -21,9 +21,11 @@
 #include "func_audio.h"
 #include "func_pwm.h"
 #include "func_display.h"
+#include "func_rand.h"
 #include "feedback_fsm.h"
 #include "p1_tapping_fsm.h"
 #include "p2_tapping_fsm.h"
+
 
 /** GAME LEVEL LOGIC **/
 //#include "mode1_fsm.h"
@@ -121,6 +123,11 @@ typedef char sound_t;
 #define STATE_SET       (2u)
 #define STATE_READY     (3u)
 
+/* Possible game modes */
+#define MODE_1          (1u)
+#define MODE_2          (2u)
+#define MODE_3          (3u)
+
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
@@ -128,6 +135,17 @@ typedef char sound_t;
 //===----------------------------------------------------------------------===//
 // when a variable is declared 'extern' it also has to be declared in
 // the corresponding .c file without the 'extern' keyword
+
+//===----------------------------------------------------------------------===//
+//  GLOBAL GAME VARIABLES
+//===----------------------------------------------------------------------===//
+extern unsigned char round;
+extern bool game_ended;
+
+//===----------------------------------------------------------------------===//
+//  RANDOM NUMBER GENERATOR
+//===----------------------------------------------------------------------===//
+#define MAX_RAND (255u)
 
 //===----------------------------------------------------------------------===//
 //  PATTERN DISPLAY

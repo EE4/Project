@@ -8,6 +8,13 @@
 #include "display_pattern_fsm.h"
 
 //===----------------------------------------------------------------------===//
+//  CONSTANTS
+//===----------------------------------------------------------------------===//
+
+/* Delay in ms between 2 successive patterns */
+#define PATTERN_DELAY (1000)
+
+//===----------------------------------------------------------------------===//
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
 
@@ -15,15 +22,18 @@ static enum {
     STATE_IDLE = 0,
     STATE_DISPLAY,
     STATE_DELAY,
-    STATE_DONE,
 } state;
 
-//===----------------------------------------------------------------------===//
-//  PRIVATE VARIABLES
-//===----------------------------------------------------------------------===//
+static bool display = FALSE; /* Trigger flag */
 
 static unsigned short timer = 0;
 static unsigned char patterns[MAX_PATTERNS] = {0};
+
+/*
+ * Indexes for keeping track scores afterwards
+ */
+static unsigned char p1_index;
+static unsigned char p2_index;
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC VARIABLES
@@ -31,18 +41,14 @@ static unsigned char patterns[MAX_PATTERNS] = {0};
 
 bool pattern_done;
 
-static unsigned long long xor128(void) 
+//===----------------------------------------------------------------------===//
+//  PRIVATE FUNCTIONS
+//===----------------------------------------------------------------------===//
+
+unsigned char pattern_generate(void)
 {
-    static unsigned long long x = 123456789;
-    static unsigned long long y = 362436069;
-    static unsigned long long z = 521288629;
-    static unsigned long long w = 88675123;
-    unsigned long long t;
-    t = x ^ (x << 11);   
-    x = y; y = z; z = w;   
-    return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+    return (RAND_gen() % 4) + 1;
 }
- 
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC FUNCTIONS
@@ -51,36 +57,61 @@ static unsigned long long xor128(void)
 void display_pattern_fsm_init(void)
 {
     state = STATE_IDLE;
-    pattern_done = FALSE;
+    pattern_done = TRUE;
     timer = 0;
+}
+
+void display_pattern(void)
+{
+    if (!display)
+        display = TRUE;
+    pattern_done = FALSE;
 }
 
 void display_pattern_fsm(void)
 {
+    unsigned char index;
+    
     switch (state) {
         case STATE_IDLE:
             // *** outputs ***
-                
+            timer = 0;
+            index = 0;
             // *** transitions ***
-            
+            if (TRUE == display)
+                state = STATE_DISPLAY;
             break;
         case STATE_DISPLAY:
             // *** outputs ***
-
-            // *** transitions ***
+            timer = 0;
             
+            /* Generate random pattern and store it */
+            patterns[index] = pattern_generate();
+            
+            /* Display same pattern for both players */
+            PATTERN_setPattern(PLAYER_1, patterns[index]);
+            PATTERN_setPattern(PLAYER_2, patterns[index]);
+            
+            /* Trigger update */
+            LEDS_update();
+            
+            /* Increment index for next pattern */
+            index++;
+            
+            // *** transitions ***
+            if (index != round * 2) {
+                state = STATE_DELAY; /* Unconditional transition */
+            } else {
+                state = STATE_IDLE;
+                pattern_done = TRUE;
+            }
             break;
         case STATE_DELAY:
             // *** outputs ***
-
+            timer ++;
             // *** transitions ***
-            
-            break;
-        case STATE_DONE:
-            // *** outputs ***
-
-            // *** transitions ***
-            
+            if (PATTERN_DELAY == timer)
+                state = STATE_DISPLAY;
             break;
         default:
             state = STATE_IDLE;

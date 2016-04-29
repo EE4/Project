@@ -62,7 +62,7 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_1, STATE_READY);
             STATE_setState(PLAYER_2, STATE_READY);
             
-            LEDS_Update();
+            LEDS_update();
             
             AUDIO_playSound(SOUND_READY);
              counter++;
@@ -74,7 +74,7 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_1, STATE_SET);
             STATE_setState(PLAYER_2, STATE_SET);
             
-             LEDS_Update();
+             LEDS_update();
              AUDIO_playSound(SOUND_SET);
              counter++;
              if (counter == 2000) current_state = LIGHT_GREEN;
@@ -84,7 +84,7 @@ void mode3_fsm(void){
             STATE_setState(PLAYER_1, STATE_GO);
             STATE_setState(PLAYER_2, STATE_GO);
             
-             LEDS_Update();
+             LEDS_update();
              AUDIO_playSound(SOUND_GO);
              counter++;
              if (counter == 3000) current_state = PLAY;
@@ -98,8 +98,7 @@ void mode3_fsm(void){
         case P1_TAP:
             p1lock = TRUE;
              arrow++;
-            ARROW_SetPosition(arrow);
-            ARROW_UpdateArrow();
+            SCORE_setScore(arrow);
             if (p2_pressed == TRUE&&p2lock == FALSE) current_state = P2_TAP;
             if(arrow>10) current_state = P1_WIN;
             else (current_state = IDLE);
@@ -108,8 +107,7 @@ void mode3_fsm(void){
         case P2_TAP:
             p2lock = TRUE;
             arrow--;
-            ARROW_SetPosition(arrow);
-            ARROW_UpdateArrow();
+            SCORE_setScore(arrow);
             if (p1_pressed  == TRUE&&p1lock == FALSE) current_state = P1_TAP;
              if(arrow<-10) current_state = P2_WIN;
             else (current_state = IDLE);

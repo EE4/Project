@@ -26,6 +26,7 @@ void STATE_setState(unsigned char, unsigned char);
 void LIVES_setLives(unsigned char, unsigned char);
 unsigned char LIVES_getLives(unsigned char);
 void MODE_setMode(unsigned char);
+void MODE_clrMode(unsigned char);
 
 /*
  *  Function to update entire SIPO-chain

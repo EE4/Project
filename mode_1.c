@@ -10,17 +10,15 @@
  ***********************************************************/
 
 /** I N C L U D E S *************************************************/
-#include "config.h"
+#include "mode_1.h"
 
 /** D E F I N E S ***************************************************/
 #define PUSHED 0
 
 /** P R I V A T E   V A R I A B L E S *******************************/
 static unsigned char counter;
-int timer = 0;
-int round_counter = 0;
-int blink_counter = 0;
-int game_ended = 0;
+static int timer = 0;
+static int blink_count = 0;
 static enum {INITIALIZE, 
             DISPLAY_ON, 
             DISPLAY_OFF, 
@@ -72,7 +70,7 @@ void mode_1_init(void) {
  * Overview:        A simple FSM that will start blinking a led on 
  *                  and off once you pushed a button.          
  ********************************************************************/
-static void mode1(void) {
+static void mode_1_fsm(void) {
     
     switch (current_state) {                
         case INITIALIZE :
@@ -81,11 +79,10 @@ static void mode1(void) {
             LIVES_setLives(PLAYER_2,5);
             STATE_setState(PLAYER_1,STATE_NONE);
             STATE_setState(PLAYER_2,STATE_NONE);
-            MODES_setMode(1);
+            MODE_setMode(1);
             PATTERN_setPattern(PLAYER_1,PATTERN_NONE);
             PATTERN_setPattern(PLAYER_2,PATTERN_NONE);
             LEDS_update();
-            RAND_generate();
             
             current_state = DISPLAY_ON;
             break;
@@ -96,7 +93,7 @@ static void mode1(void) {
             PATTERN_setPattern(PLAYER_2,PATTERN_ALL);
             counter++;
             LEDS_update();
-            blink_counter++;
+            blink_count++;
         
             if (counter == 200) current_state = DISPLAY_OFF;
             break;
@@ -114,8 +111,8 @@ static void mode1(void) {
             break;
          
         case PATTERN_ON :
-            round_counter++;
-            round_pattern_fsm();
+            round++;
+            display_pattern();
             
             if (pattern_done == 1) {current_state = LIGHT_RED; counter = 0;}
             break;
@@ -155,6 +152,8 @@ static void mode1(void) {
             AUDIO_playSound(SOUND_NONE);
             LEDS_update();
             timer++;
+            
+            
             
             if (timer >= 30000) current_state = ROUND_CHECK;
             if (P1_correct & P2_correct) current_state = BOTH_CORRECT;
@@ -310,7 +309,7 @@ static void mode1(void) {
             
         case ROUND_CHECK :
             
-            if (round_counter < 5) current_state = DISPLAY_ON;
+            if (round < 5) current_state = DISPLAY_ON;
             else current_state = EXIT_MODE1;
             break;
             

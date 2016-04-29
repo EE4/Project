@@ -6,17 +6,18 @@
 
 /** P R I V A T E   V A R I A B L E S *******************************/
 static unsigned char counter;
-int round = 0;
-static enum {MODE2_INIT,
-            READY,
-            SET,
-            GO_DETECT,
-            INCREASE_SCORE,
-            DECREASE_SCORE,
-            SHOW_WINNER_P1,
-            SHOW_WINNER_P2,
-            ENABLE_TAP,
-            EXIT_MODE2} current_state, state_to_recover;
+static enum {
+    MODE2_INIT,
+    READY,
+    SET,
+    GO_DETECT,
+    INCREASE_SCORE,
+    DECREASE_SCORE,
+    SHOW_WINNER_P1,
+    SHOW_WINNER_P2,
+    ENABLE_TAP,
+    EXIT_MODE2
+} current_state, state_to_recover;
 
 void mode_3_init(void) {
 	current_state = MODE2_INIT;
@@ -34,7 +35,7 @@ void mode_3(void) {
             LIVES_setLives(PLAYER_2,5);
             STATE_setState(PLAYER_1,STATE_NONE);
             STATE_setState(PLAYER_2,STATE_NONE);
-            MODES_setMode(3);
+            MODE_setMode(3);
             PATTERN_setPattern(PLAYER_1,PATTERN_NONE);
             PATTERN_setPattern(PLAYER_2,PATTERN_NONE);
             Lock_Tap_Detection();
