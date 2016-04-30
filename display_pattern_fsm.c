@@ -22,6 +22,7 @@ static enum {
     STATE_IDLE = 0,
     STATE_DISPLAY,
     STATE_DELAY,
+    STATE_DONE
 } state;
 
 static bool display = FALSE; /* Trigger flag */
@@ -102,7 +103,7 @@ void display_pattern_fsm(void)
             if (index != round * 2) {
                 state = STATE_DELAY; /* Unconditional transition */
             } else {
-                state = STATE_IDLE;
+                state = STATE_DONE;
                 pattern_done = TRUE;
             }
             break;
@@ -112,6 +113,14 @@ void display_pattern_fsm(void)
             // *** transitions ***
             if (PATTERN_DELAY == timer)
                 state = STATE_DISPLAY;
+            break;
+        case STATE_DONE:
+            // *** outputs ***
+            
+            /* TODO: Check for taps, and compare if a player is correct or not */
+            
+            // *** transitions ***
+            
             break;
         default:
             state = STATE_IDLE;

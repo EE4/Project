@@ -152,5 +152,7 @@ void p2_tapping_fsm(void)
             default:
                 state = P2_IDLE;
         }
+    } else {
+        p2_pressed = NONE;
     }
 }

@@ -15,6 +15,11 @@
 #define STATE_MASK  (0x8F)
 
 //===----------------------------------------------------------------------===//
+//  PUBLIC  VARIABLES
+//===----------------------------------------------------------------------===//
+bool mode_idle;
+
+//===----------------------------------------------------------------------===//
 //  PRIVATE  VARIABLES
 //===----------------------------------------------------------------------===//
 
@@ -104,6 +109,9 @@ static unsigned char STATE_translate(unsigned char state)
 
 static void MODE_doSet(unsigned char mode, bool value)
 {
+    /* Don't put PWM on mode display */
+    mode_idle = FALSE;
+    
     switch (mode) {
         case 0:
             break;
@@ -205,6 +213,11 @@ void LEDS_init(void)
     T_SERIAL_CK = OUTPUT;
     T_SERIAL_O  = OUTPUT;
     T_STROBE    = OUTPUT;
+    
+    D_SERIAL_OE = FALSE;
+    D_SERIAL_CK = FALSE;
+    D_SERIAL_O = FALSE;
+    D_STROBE = FALSE;
 }
 
 void LEDS_update(void)
@@ -218,9 +231,9 @@ void LEDS_update(void)
      *  THE CHAIN.
      */
     SIPO_do_write_byte(lives_p1);
-    //SIPO_do_write_byte(pattern_p1);
-    //SIPO_do_write_byte(pattern_p2);
-    //SIPO_do_write_byte(lives_p2);
+    SIPO_do_write_byte(pattern_p1);
+    SIPO_do_write_byte(pattern_p2);
+    SIPO_do_write_byte(lives_p2);
     
     /* Strobe high to put serial data on 
      * parallel outputs */

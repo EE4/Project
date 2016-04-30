@@ -51,16 +51,6 @@ void PWM_init(void) {
     /* Set-up interrupt */
     OpenTimer1(TRUE);
 	
-    /**** Initialize all PWM outputs ****/
-    D_SERVO = 0;
-    D_MODE1 = 0;
-    D_MODE2 = 0;
-    D_MODE3 = 0;
-    T_SERVO = OUTPUT;
-    T_MODE1 = OUTPUT;
-    T_MODE2 = OUTPUT;
-    T_MODE3 = OUTPUT;
-    /************************************/
 }
 
 /********************************************************************
@@ -89,9 +79,11 @@ void PWM_ISR(void) {
         D_SERVO = (PWM_duty[0] > servo_counter);
         
         /* Toggle mode leds on the duty cycle of the mode_counter */
-        D_MODE1 = (PWM_duty[1] > mode_counter);
-        D_MODE2 = (PWM_duty[1] > mode_counter);
-        D_MODE3 = (PWM_duty[1] > mode_counter);
+        if (mode_idle) {
+            D_MODE1 = (PWM_duty[1] > mode_counter);
+            D_MODE2 = (PWM_duty[1] > mode_counter);
+            D_MODE3 = (PWM_duty[1] > mode_counter);
+        }
         
         PIR1bits.TMR1IF = 0;
     }

@@ -5,13 +5,14 @@
  * Created on 15 april 2016, 16:39
  */
 
-#include <xc.h>
-
-// We have to include header files to know where things are 
-#include "config.h"
 #include "mode3_fsm.h"
 
+//===----------------------------------------------------------------------===//
+//  PRIVATE VARIABLES
+//===----------------------------------------------------------------------===//
+
 static int counter;
+static bool running;
 static bool p1lock;
 static bool p2lock;
 static int arrow;
@@ -32,6 +33,18 @@ static enum {
     P2_WIN,
     GAME_OVER
 } current_state;
+
+void mode3_fsm_init(void) 
+{
+    current_state = INITIALIZE;
+}
+
+void mode3_fsm_play(void)
+{
+    if (!running)
+        running = TRUE;
+    game_ended = FALSE;
+}
         
 void mode3_fsm(void){
     
@@ -53,8 +66,8 @@ void mode3_fsm(void){
             
             LEDS_update();
             
-            /* Uncondtional transition */
-            current_state = LIGHT_RED;
+            if (running)
+                current_state = LIGHT_RED;
             break;
             
         case LIGHT_RED:
@@ -123,24 +136,25 @@ void mode3_fsm(void){
         case P1_UNLOCK:
             p1lock = FALSE;
             current_state = IDLE;
-     break;
+            break;
      
         case P2_UNLOCK:
             p1lock = FALSE;
             current_state = IDLE;
-                break; 
+            break; 
                 
-        case P1_WIN :
-            AUDIO_playSound(SOUND_WON);
-             current_state = GAME_OVER;
-                 break;
-        case P2_WIN :
+        case P1_WIN:
             AUDIO_playSound(SOUND_WON);
             current_state = GAME_OVER;
-                 break;
+            break;
+        case P2_WIN:
+            AUDIO_playSound(SOUND_WON);
+            current_state = GAME_OVER;
+            break;
         case GAME_OVER :
-             break;
+            current_state = INITIALIZE;
+            game_ended = FALSE;
+            running = FALSE;
+            break;
     }
-}         
-                
-                                           
+}

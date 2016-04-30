@@ -15,17 +15,6 @@
 /** I N C L U D E S *************************************************/
 #include "config.h"
 
-/** D E F I N E S ***************************************************/
-#define PWM_CHANNELS    2
-
-#define SERVO_CHANNEL   0
-#define MODE_CHANNEL    1
-
-/** P U B L I C   V A R I A B L E S *********************************/
-// when a variable is declared 'extern' it also has to be declared in
-// the corresponding .c file without the 'extern' keyword
-extern unsigned short PWM_duty[PWM_CHANNELS];
-
 /** P U B L I C   P R O T O T Y P E S *******************************/
 void PWM_init(void);
 void PWM_ISR(void);

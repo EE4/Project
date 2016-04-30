@@ -70,7 +70,7 @@ void mode_1_init(void) {
  * Overview:        A simple FSM that will start blinking a led on 
  *                  and off once you pushed a button.          
  ********************************************************************/
-static void mode_1_fsm(void) {
+void mode_1_fsm(void) {
     
     switch (current_state) {                
         case INITIALIZE :
@@ -180,7 +180,7 @@ static void mode_1_fsm(void) {
          
         case P1_CORRECT_P2_WRONG :
             P1_right_counter++;
-            FEEDBACK_turnOn(PLAYER_2);
+            FEEDBACK_giveFeedback(PLAYER_2);
             LIVES_setLives(PLAYER_2,-1);
             LEDS_update();
             if (timer >= 30000) current_state = ROUND_CHECK;
@@ -197,10 +197,10 @@ static void mode_1_fsm(void) {
             break;
             
         case P1_WRONG_P2_CORRECT :
-            FEEDBACK_turnOn(PLAYER_1);
+            P2_right_counter++;
+            FEEDBACK_giveFeedback(PLAYER_1);
             LIVES_setLives(PLAYER_1,-1);
             LEDS_update();
-            P2_right_counter++;
             if (timer >= 30000) current_state = ROUND_CHECK;
             if (P2_right_counter == 10 ) {winner = P2; current_state = WIN_STATE;}
             if (LIVES_getLives(player_1) == 0) {looser = P1; current_state = LOSE_STATE;}
@@ -208,9 +208,9 @@ static void mode_1_fsm(void) {
             break;
             
         case BOTH_WRONG :
-            FEEDBACK_turnOn(PLAYER_1);
+            FEEDBACK_giveFeedback(PLAYER_1);
             LIVES_setLives(PLAYER_1,-1);
-            FEEDBACK_turnOn(PLAYER_2);
+            FEEDBACK_giveFeedback(PLAYER_2);
             LIVES_setLives(PLAYER_1,-1);
             LEDS_update();
             
@@ -222,7 +222,7 @@ static void mode_1_fsm(void) {
             break;
             
         case P1_WRONG_P2_NOTHING :
-            FEEDBACK_turnOn(PLAYER_1);
+            FEEDBACK_giveFeedback(PLAYER_1);
             LIVES_setLives(PLAYER_1,-1);
             LEDS_update();
             
@@ -240,7 +240,7 @@ static void mode_1_fsm(void) {
             break;
             
         case P1_NOTHING_P2_WRONG :
-            FEEDBACK_turnOn(PLAYER_2);
+            FEEDBACK_giveFeedback(PLAYER_2);
             LIVES_setLives(PLAYER_2,-1);
             LEDS_update();
             

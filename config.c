@@ -48,6 +48,22 @@ void TAP_init(void)
     INTCON2bits.RBPU = 0;   /* Turn on weak pull-up */ 
 }
 
+void MODE_init(void)
+{
+    D_MODE1 = 0;
+    D_MODE2 = 0;
+    D_MODE3 = 0;
+    T_MODE1 = OUTPUT;
+    T_MODE2 = OUTPUT;
+    T_MODE3 = OUTPUT;
+}
+
+void SERVO_init(void)
+{
+    D_SERVO = 0;
+    T_SERVO = OUTPUT;
+}
+
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
 /********************************************************************
@@ -64,11 +80,21 @@ void hardware_init(void) {
     PWM_init();
 #endif
     
+    SERVO_init();
+    
+    MODE_init();
+    
     /* Initialise PORTB for detecting taps */
     TAP_init();
     
     /* Initalise PWM (Timer 2) and Sampler (Timer 0) for Audio */
     AUDIO_init();
+    
+    /* Initialise haptic feedback */
+    HAPTIC_init();
+    
+    /* Initialise SIPO chain */
+    LEDS_init();
     
 	OpenTimer3(FALSE);
 }

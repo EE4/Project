@@ -41,13 +41,13 @@ static unsigned char fsm_p1_sample(void)
      * the active low control line, like so:
      *                 |
      *          >>>>>>>|>v        |          |          |
-     *          ^ +----+ v   +-/ -+     +-/ -+     +-/ -+
-     *     >>>>>> |    | v   |    |     |    |     |    |
+     *          ^ +----+ v   +----+     +----+     +----+
+     *     >>>>>> |    | v  \     |    \     |    \     |
      * '1' -------+----|-v---+----|-----+----|-----+----|
      *                 | v        |          |          |
      *          <<<<<<<|<<        |          |          |
-     *          v +----+     +-/ -+     +-/ -+     +-/ -+
-     *     <<<<<< |    |     |    |     |    |     |    |
+     *          v +----+     +----+     +----+     +----+
+     *     <<<<<< |    |    \     |    \     |    \     |
      * '0' -------+----|-----+----|-----+----|-----+----|
      *
      * To overcome this problem we configure the control line of 
@@ -152,5 +152,7 @@ void p1_tapping_fsm(void)
             default:
                 state = P1_IDLE;
         }
+    } else {
+        p1_pressed = NONE;
     }
 }

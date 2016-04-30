@@ -19,12 +19,16 @@ static unsigned char seed_time; /* Value to seed */
 unsigned int counter;
 unsigned int led_counter;
 
+//===----------------------------------------------------------------------===//
+//  GLOBAL PUBLIC VARIABLES
+//===----------------------------------------------------------------------===//
+
+/* Global game variables */
 unsigned char round;
 bool game_ended;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 static void init(void);
-
 
 char rl(char a)
 {
@@ -35,6 +39,17 @@ char rl(char a)
     a |= (temp << 7) & 0x80;
     
     return a;
+}
+
+static __attribute__((unused)) void test_single_sipo(void)
+{
+    counter++;
+    if (counter == 100) {
+        counter = 0;
+        led_counter = rl(led_counter);
+        LIVES_setLives(PLAYER_1, led_counter);
+        LEDS_update();
+    }
 }
 
 /********************************************************************/
@@ -48,35 +63,15 @@ char rl(char a)
  ******************************************s**************************/
 void main(void) {
 	init();						//initialize the system
-    int var = 0;
-    LEDS_init();
     
-    LIVES_setLives(PLAYER_1, 0);
-    LEDS_update();
-    led_counter = 0x01;
 	while(timed_to_1ms()) {
-        
         RAND_seed(seed_time++); /* Try to seed the RNG - seed_time can overflow, 
                                  * but we don't care #YOLO */
         
-        counter++;
-        if (counter == 100) {
-            counter = 0;
-            led_counter = rl(led_counter);
-            LIVES_setLives(PLAYER_1, led_counter);
-            LEDS_update();
-        }
         
-        //**** put here a reference to one or more FSM's
-        //p1_tapping_fsm();
-        //p2_tapping_fsm();
-        //if ((++counter) == 20) {
-            //PWM_duty[1] = (PWM_duty[1] + 2) % 200;
-            //counter = 0;
-        //}
-        
+        /* Main game FSM */
+        general_fsm();
 	}
-    
 }
 
 /********************************************************************/
@@ -93,7 +88,10 @@ void main(void) {
  ********************************************************************/
 static void init(void) 
 {
-    hardware_init(); 
+    hardware_init();
+    
+    general_fsm_init();
+    mode3_fsm_init();
 }
 
 //EOF-------------------------------------------------------------------------

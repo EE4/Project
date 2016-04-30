@@ -113,7 +113,7 @@ void AUDIO_setupSampler(void)
     INTCONbits.GIE = 1;     /* Enable interrupt */
 }
 
-static void AUDIO_update_sample(const char a)
+static void AUDIO_update_sample(const unsigned char a)
 {
     CCPR1L = a >> 2;
     CCP1CONbits.DC1B1 = (a & 0x02) >> 1;
