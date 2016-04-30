@@ -33,8 +33,9 @@ static unsigned char patterns[MAX_PATTERNS] = {0};
 /*
  * Indexes for keeping track scores afterwards
  */
-static unsigned char p1_index;
-static unsigned char p2_index;
+static unsigned char P1_right_counter;
+static unsigned char P2_right_counter;
+   static unsigned char index;
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC VARIABLES
@@ -71,7 +72,6 @@ void display_pattern(void)
 
 void display_pattern_fsm(void)
 {
-    unsigned char index;
     
     switch (state) {
         case STATE_IDLE:
@@ -104,7 +104,7 @@ void display_pattern_fsm(void)
                 state = STATE_DELAY; /* Unconditional transition */
             } else {
                 state = STATE_DONE;
-                pattern_done = TRUE;
+                pattern_done = 1;
             }
             break;
         case STATE_DELAY:
@@ -118,7 +118,10 @@ void display_pattern_fsm(void)
             // *** outputs ***
             
             /* TODO: Check for taps, and compare if a player is correct or not */
-            
+            if (p1_pressed == patterns[P1_right_counter]) {P1_correct; P1_right_counter++;}
+            if (p1_pressed != patterns[P1_right_counter]) P1_wrong;
+            if (p2_pressed == patterns[P2_right_counter]) {P2_correct; P2_right_counter++;}
+            if (p2_pressed != patterns[P2_right_counter]) P2_wrong;
             // *** transitions ***
             
             break;
