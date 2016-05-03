@@ -15,9 +15,9 @@
 
 /** P R I V A T E   V A R I A B L E S *******************************/
 static unsigned char seed_time; /* Value to seed */
+static unsigned long long time_ms;
 
 unsigned int counter;
-unsigned int led_counter;
 
 //===----------------------------------------------------------------------===//
 //  GLOBAL PUBLIC VARIABLES
@@ -41,17 +41,6 @@ char rl(char a)
     return a;
 }
 
-static __attribute__((unused)) void test_single_sipo(void)
-{
-    counter++;
-    if (counter == 100) {
-        counter = 0;
-        led_counter = rl(led_counter);
-        LIVES_setLives(PLAYER_1, led_counter);
-        LEDS_update();
-    }
-}
-
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
 /********************************************************************
@@ -66,13 +55,22 @@ void main(void) {
     unsigned char byte = 0x00;
     
     //AUDIO_playSound(SOUND_SELECT);
+    p1_tapping_fsm_init();
+    feedback_fsm_init();
     
 	while(timed_to_1ms()) {
+        time_ms++;
         RAND_seed(seed_time++); /* Try to seed the RNG - seed_time can overflow, 
                                  * but we don't care #YOLO */
         
         /* Main game FSM */
         general_fsm();
+        p1_tapping_fsm();
+        feedback_fsm();
+        
+        if (time_ms % 2000) {
+            FEEDBACK_giveFeedback(PLAYER_1);
+        }
         
         if (!(seed_time % 128)) {
             

@@ -122,6 +122,7 @@ void display_pattern_fsm(void)
             if (p1_pressed != patterns[P1_right_counter]) P1_wrong;
             if (p2_pressed == patterns[P2_right_counter]) {P2_correct; P2_right_counter++;}
             if (p2_pressed != patterns[P2_right_counter]) P2_wrong;
+            
             // *** transitions ***
             
             break;
