@@ -40,7 +40,16 @@ static enum {INITIALIZE,
             ROUND_CHECK,
             EXIT_MODE1 } current_state, state_to_recover;
 
-
+            bool P1_correct;
+            bool P1_wrong;
+            bool P1_nothing;
+            bool P2_correct;
+            bool P2_wrong;
+            bool P2_nothing;
+            int P1_right_counter;
+            int P2_right_counter;
+            static unsigned char winner;
+            static unsigned char looser;
 /********************************************************************/
 /** P R I V A T E   D E C L A R A T I O N S *************************/
 /********************************************************************
@@ -153,8 +162,6 @@ void mode_1_fsm(void) {
             LEDS_update();
             timer++;
             
-            
-            
             if (timer >= 30000) current_state = ROUND_CHECK;
             if (P1_correct & P2_correct) current_state = BOTH_CORRECT;
             if (P1_correct & P2_wrong) current_state = P1_CORRECT_P2_WRONG;
@@ -172,9 +179,9 @@ void mode_1_fsm(void) {
             P2_right_counter++;
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P1_right_counter == 10 && P2_right_counter == 10) {winner = null; current_state = WIN_STATE;}
-            if (P1_right_counter == 10 ) {winner = P1; current_state = WIN_STATE;}
-            if (P2_right_counter == 10 ) {winner = P2; current_state = WIN_STATE;}
+            if (P1_right_counter == 10 && P2_right_counter == 10) {winner = NONE; current_state = WIN_STATE;}
+            if (P1_right_counter == 10 ) {winner = PLAYER_1; current_state = WIN_STATE;}
+            if (P2_right_counter == 10 ) {winner = PLAYER_2; current_state = WIN_STATE;}
             else current_state = PLAY;
             break;
          
@@ -184,15 +191,15 @@ void mode_1_fsm(void) {
             LIVES_setLives(PLAYER_2,-1);
             LEDS_update();
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P1_right_counter == 10 ) {winner = P1; current_state = WIN_STATE;}
-            if (LIVES_getLives(player_2) == 0) {looser = P2; current_state = LOSE_STATE;}
+            if (P1_right_counter == 10 ) {winner = PLAYER_1; current_state = WIN_STATE;}
+            if (LIVES_getLives(PLAYER_2) == 0) {looser = PLAYER_2; current_state = LOSE_STATE;}
             else current_state = PLAY;
             break;
             
         case P1_CORRECT_P2_NOTHING :
             P1_right_counter++;
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P1_right_counter == 10 ) {winner = P1; current_state = WIN_STATE;}
+            if (P1_right_counter == 10 ) {winner = PLAYER_1; current_state = WIN_STATE;}
             else current_state = PLAY;
             break;
             
@@ -202,8 +209,8 @@ void mode_1_fsm(void) {
             LIVES_setLives(PLAYER_1,-1);
             LEDS_update();
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P2_right_counter == 10 ) {winner = P2; current_state = WIN_STATE;}
-            if (LIVES_getLives(player_1) == 0) {looser = P1; current_state = LOSE_STATE;}
+            if (P2_right_counter == 10 ) {winner = PLAYER_2; current_state = WIN_STATE;}
+            if (LIVES_getLives(PLAYER_1) == 0) {looser = PLAYER_1; current_state = LOSE_STATE;}
             else current_state = PLAY;
             break;
             
@@ -215,9 +222,9 @@ void mode_1_fsm(void) {
             LEDS_update();
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (LIVES_getLives(player_1) == 0 && LIVES_getLives(player_2) == 0) {looser = null; current_state = LOSE_STATE;}
-            if (LIVES_getLives(player_1) == 0) {looser = P1; current_state = LOSE_STATE;}
-            if (LIVES_getLives(player_2) == 0) {looser = P2; current_state = LOSE_STATE;}
+            if (LIVES_getLives(PLAYER_1) == 0 && LIVES_getLives(PLAYER_2) == 0) {looser = NONE; current_state = LOSE_STATE;}
+            if (LIVES_getLives(PLAYER_1) == 0) {looser = PLAYER_1; current_state = LOSE_STATE;}
+            if (LIVES_getLives(PLAYER_2) == 0) {looser = PLAYER_2; current_state = LOSE_STATE;}
             else current_state = PLAY;
             break;
             
@@ -227,7 +234,7 @@ void mode_1_fsm(void) {
             LEDS_update();
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (LIVES_getLives(player_1) == 0) {looser = P1; current_state = LOSE_STATE;}
+            if (LIVES_getLives(PLAYER_1) == 0) {looser = PLAYER_1; current_state = LOSE_STATE;}
             else current_state = PLAY;
             break;
             
@@ -235,7 +242,7 @@ void mode_1_fsm(void) {
             P2_right_counter++;
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P2_right_counter == 10 ) {winner = P2; current_state = WIN_STATE;}
+            if (P2_right_counter == 10 ) {winner = PLAYER_2; current_state = WIN_STATE;}
             else current_state = PLAY;
             break;
             
@@ -245,19 +252,19 @@ void mode_1_fsm(void) {
             LEDS_update();
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (LIVES_getLives(player_2) == 0) {looser = P2; current_state = LOSE_STATE;}
+            if (LIVES_getLives(PLAYER_2) == 0) {looser = PLAYER_2; current_state = LOSE_STATE;}
             else current_state = PLAY;
             break;
             
         case WIN_STATE :
-            if (winner = null) { 
+            if (winner = NONE) { 
                 PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
                 STATE_setState(PLAYER_1,STATE_ALL);
                 LIVES_setLives(PLAYER_1,5);
                 PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
                 STATE_setState(PLAYER_2,STATE_ALL);
                 LIVES_setLives(PLAYER_2,5);}
-            if (winner = P1) {
+            if (winner = PLAYER_1) {
                 SCORE_updateScore(+2); 
                 PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
                 STATE_setState(PLAYER_1,STATE_ALL);
@@ -265,7 +272,7 @@ void mode_1_fsm(void) {
                 PATTERN_setPattern(PLAYER_2,PATTERN_NONE); 
                 STATE_setState(PLAYER_2,STATE_NONE);
                 LIVES_setLives(PLAYER_2,0);}
-            if (winner = P2) {
+            if (winner = PLAYER_2) {
                 SCORE_updateScore(-2); 
                 PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
                 STATE_setState(PLAYER_2,STATE_ALL);
@@ -279,14 +286,14 @@ void mode_1_fsm(void) {
             break;
             
         case LOSE_STATE :
-            if (looser = null){
+            if (looser = NONE){
                 PATTERN_setPattern(PLAYER_1,PATTERN_NONE); 
                 STATE_setState(PLAYER_1,STATE_NONE);
                 LIVES_setLives(PLAYER_1,0);
                 PATTERN_setPattern(PLAYER_2,PATTERN_NONE); 
                 STATE_setState(PLAYER_2,STATE_NONE);
                 LIVES_setLives(PLAYER_2,0);}
-            if (looser = P1){
+            if (looser = PLAYER_1){
                 SCORE_updateScore(-2); 
                 PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
                 STATE_setState(PLAYER_2,STATE_ALL);
@@ -294,7 +301,7 @@ void mode_1_fsm(void) {
                 PATTERN_setPattern(PLAYER_1,PATTERN_NONE); 
                 STATE_setState(PLAYER_1,STATE_NONE);
                 LIVES_setLives(PLAYER_1,0);}
-            if (looser = P2){
+            if (looser = PLAYER_2){
                 SCORE_updateScore(+2); 
                 PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
                 STATE_setState(PLAYER_1,STATE_ALL);
