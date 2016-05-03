@@ -48,6 +48,7 @@
 #define RING        (3)
 #define PINKY       (4)
 
+
 /* LATCH REGISTERS */
 #define D_AUDIO     LATCbits.LC2
 #define D_MODE1     LATCbits.LC1
@@ -123,6 +124,7 @@ typedef char sound_t;
 #define STATE_GO        (1u)
 #define STATE_SET       (2u)
 #define STATE_READY     (3u)
+#define STATE_ALL       (4u)
 
 /* Possible game modes */
 #define MODE_1          (1u)
@@ -142,6 +144,7 @@ typedef char sound_t;
 //===----------------------------------------------------------------------===//
 extern unsigned char round;
 extern bool game_ended;
+extern bool game_started;
 
 //===----------------------------------------------------------------------===//
 //  RANDOM NUMBER GENERATOR
@@ -197,4 +200,3 @@ unsigned char timed_to_1ms(void);
 void interrupt interrupt_handler(void);
 
 #endif
-//EOF----------------------------------------------------------------

@@ -63,14 +63,26 @@ static __attribute__((unused)) void test_single_sipo(void)
  ******************************************s**************************/
 void main(void) {
 	init();						//initialize the system
+    unsigned char byte = 0x00;
+    
+    //AUDIO_playSound(SOUND_SELECT);
     
 	while(timed_to_1ms()) {
         RAND_seed(seed_time++); /* Try to seed the RNG - seed_time can overflow, 
                                  * but we don't care #YOLO */
         
-        
         /* Main game FSM */
         general_fsm();
+        
+        if (!(seed_time % 128)) {
+            
+            PATTERN_setPattern(PLAYER_1, byte);
+            PATTERN_setPattern(PLAYER_2, byte);
+            
+            LEDS_update();
+            
+            byte = (byte + 1) % 5;
+        }
 	}
 }
 

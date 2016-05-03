@@ -27,6 +27,8 @@
 // (cfr. 'private' in Java)
 static void OpenTimer3(unsigned char intEnable);
 
+void interrupt interrupt_handler(void);
+
 ///
 /// INITIALISE TAPPING GRID
 ///
@@ -130,7 +132,8 @@ unsigned char timed_to_1ms(void) {
  * Overview:        This routine is called whenever an interrupt 
  *                  condition is  reached
  ********************************************************************/	
-void interrupt interrupt_handler(void) {
+void interrupt interrupt_handler(void)
+{
 #if PWM_CHANNELS > 0
     PWM_ISR();
 #endif

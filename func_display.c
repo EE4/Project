@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   func_display.h
  * Author: jelle
  *
@@ -59,19 +59,19 @@ static unsigned char PATTERN_translate(unsigned char pattern)
         return (unsigned char)0;
     else if (PATTERN_ALL == pattern)
         return (unsigned char)0xFF;
-    
+
     /* Shift according to pattern */
-    return (0x01 << ((int)pattern - 1));
+    return (0x80 >> ((int)pattern - 1));
 }
 
 static unsigned char LIVES_translate(unsigned char lives)
 {
     /* 5 leds on -> shifted to the right how many lives there are left:
-     * f.e. lives = 0 means shifting to the right 5 times, nothing left 
-     *      lives = 5 means shifting to the right 0 times, 5 lives left 
+     * f.e. lives = 0 means shifting to the right 5 times, nothing left
+     *      lives = 5 means shifting to the right 0 times, 5 lives left
      */
     unsigned char gauge_lives = 0x1F >> (5 - lives);
-    
+
     /* Now format bits like they are connected to the SIPO */
     return (unsigned char)((gauge_lives >> 1) | (gauge_lives << 7));
 }
@@ -80,29 +80,31 @@ static unsigned char LIVE_inv_translate(unsigned char lives)
 {
     /* Mask out state bits from live display storage */
     unsigned char masked = lives & ~LIVES_MASK;
-    
+
     /* Inverse formatign of how leds are connected to SIPO */
     unsigned char gauge_lives = (masked >> 7) | (masked << 1);
-    
-    unsigned char lives_left = 0; 
-    
+
+    unsigned char lives_left = 0;
+
     /* Count while the value of the gauge lives is still true */
     while (masked) {
         /* Shift out one live and increment lives_left */
         masked = masked >> 1;
         lives_left++;
     }
-    
+
     return lives_left;
 }
 
 static unsigned char STATE_translate(unsigned char state)
 {
     unsigned char _state = 0x01 << (state - 1);
-    
+
     if (STATE_NONE == state)
         return (unsigned char)0;
-    
+    if (STATE_ALL == state)
+        return (unsigned char)0xFF;
+
     /* Now format bits like they are connected to the SIPO */
     return (unsigned char)(_state << 4);
 }
@@ -111,7 +113,7 @@ static void MODE_doSet(unsigned char mode, bool value)
 {
     /* Don't put PWM on mode display */
     mode_idle = FALSE;
-    
+
     switch (mode) {
         case 0:
             break;
@@ -153,7 +155,7 @@ static void SIPO_do_write_byte(char a)
 //===----------------------------------------------------------------------===//
 
 void PATTERN_setPattern(unsigned char player, unsigned char pattern)
-{   
+{
     if (PLAYER_1 == player) {
         pattern_p1 = PATTERN_translate(pattern);
     } else if (PLAYER_2 == player) {
@@ -175,7 +177,7 @@ void STATE_setState(unsigned char player, unsigned char state)
 }
 
 void LIVES_setLives(unsigned char player, unsigned char lives)
-{   
+{
     if (PLAYER_1 == player) {
         lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
     } else if (PLAYER_2 == player) {
@@ -213,7 +215,7 @@ void LEDS_init(void)
     T_SERIAL_CK = OUTPUT;
     T_SERIAL_O  = OUTPUT;
     T_STROBE    = OUTPUT;
-    
+
     D_SERIAL_OE = FALSE;
     D_SERIAL_CK = FALSE;
     D_SERIAL_O = FALSE;
@@ -224,7 +226,7 @@ void LEDS_update(void)
 {
     /* Output enable on */
     D_SERIAL_OE = 1;
-    
+
     /*
      *  UPDATE THIS ORDER ACCORDING TO HOW
      *  THE DIFFERENT SIPO'S ARE CONNECTED IN
@@ -234,8 +236,8 @@ void LEDS_update(void)
     SIPO_do_write_byte(pattern_p1);
     SIPO_do_write_byte(pattern_p2);
     SIPO_do_write_byte(lives_p2);
-    
-    /* Strobe high to put serial data on 
+
+    /* Strobe high to put serial data on
      * parallel outputs */
     D_STROBE = 1;
 
@@ -245,6 +247,6 @@ void LEDS_update(void)
 
     /* Strobe low */
     D_STROBE = 0;
-    
+
     D_SERIAL_OE = 1;
 }
