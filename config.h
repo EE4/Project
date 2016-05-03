@@ -175,7 +175,14 @@ extern bool pattern_done;
 //===----------------------------------------------------------------------===//
 extern unsigned char p1_pressed;
 extern unsigned char p2_pressed;
-
+extern bool P1_correct;
+           extern bool P1_wrong;
+           extern bool P1_nothing;
+           extern bool P2_correct;
+           extern bool P2_wrong;
+           extern bool P2_nothing;
+           extern int P1_right_counter;
+           extern int P2_right_counter;
 //===----------------------------------------------------------------------===//
 //  HAPTIC FEEDBACK
 //===----------------------------------------------------------------------===//
