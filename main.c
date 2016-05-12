@@ -26,6 +26,7 @@ unsigned int counter;
 /* Global game variables */
 unsigned char round;
 bool game_ended;
+bool round_ended;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 static void init(void);

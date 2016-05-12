@@ -25,10 +25,10 @@
 #include "feedback_fsm.h"
 #include "p1_tapping_fsm.h"
 #include "p2_tapping_fsm.h"
-
+#include "display_pattern_fsm.h"
 /** GAME LEVEL LOGIC **/
 #include "general_fsm.h"
-//#include "mode1_fsm.h"
+#include "mode_1.h"
 //#include "mode2_fsm.h"
 #include "mode3_fsm.h"
 
@@ -149,7 +149,7 @@ typedef char sound_t;
 extern unsigned char round;
 extern bool game_ended;
 extern bool game_started;
-
+extern bool round_ended;
 //===----------------------------------------------------------------------===//
 //  RANDOM NUMBER GENERATOR
 //===----------------------------------------------------------------------===//
@@ -187,14 +187,12 @@ extern bool pattern_done;
 //===----------------------------------------------------------------------===//
 extern unsigned char p1_pressed;
 extern unsigned char p2_pressed;
-extern bool P1_correct;
-extern bool P1_wrong;
-extern bool P1_nothing;
-extern bool P2_correct;
-extern bool P2_wrong;
-extern bool P2_nothing;
+extern char p1_tapped;
+extern char p2_tapped;
 extern unsigned char P1_right_counter;
 extern unsigned char P2_right_counter;
+#define CORRECT (1)
+#define WRONG (-1)
 
 //===----------------------------------------------------------------------===//
 //  HAPTIC FEEDBACK

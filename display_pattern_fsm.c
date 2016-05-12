@@ -108,8 +108,8 @@ void display_pattern_fsm(void)
             index++;
             
             // *** transitions ***
-            if (index != round * 2) {
-                state = STATE_DELAY; /* Unconditional transition */
+            if (index < 10) {
+                state = STATE_DELAY;
             } else {
                 state = STATE_WAIT;
                 pattern_done = 1;
@@ -129,17 +129,21 @@ void display_pattern_fsm(void)
                 state = STATE_WAIT;
         case STATE_DONE:
             // *** outputs ***
+            if (p1_pressed == patterns[P1_right_counter]) {p1_tapped = CORRECT; P1_right_counter++;}
+            else if (!p1_pressed) p1_tapped = NONE;
+            else p1_tapped = WRONG;
             
-            
-            
+            if (p2_pressed == patterns[P2_right_counter]) {p2_tapped = CORRECT; P2_right_counter++;}
+            else if (!p2_pressed) p2_pressed = NONE;
+            else p2_pressed = WRONG;
             /* TODO: Check for taps, and compare if a player is correct or not */
-            if (p1_pressed == patterns[P1_right_counter]) {P1_correct = TRUE; P1_right_counter++;}
-            if (p1_pressed != patterns[P1_right_counter]) P1_wrong = TRUE;
-            if (p2_pressed == patterns[P2_right_counter]) {P2_correct = TRUE; P2_right_counter++;}
-            if (p2_pressed != patterns[P2_right_counter]) P2_wrong = TRUE;
+            
             
             // *** transitions ***
-            
+            if (round_ended) {
+                display = FALSE;
+                state = STATE_IDLE;
+            }
             break;
         default:
             state = STATE_IDLE;
