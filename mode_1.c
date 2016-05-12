@@ -16,7 +16,7 @@
 #define PUSHED 0
 
 /** P R I V A T E   V A R I A B L E S *******************************/
-static unsigned char counter;
+static unsigned short counter;
 static int timer = 0;
 static int blink_count = 0;
 static bool running;
@@ -41,14 +41,10 @@ static enum {INITIALIZE,
             ROUND_CHECK,
             EXIT_MODE1 } current_state, state_to_recover;
 
-            bool P1_correct;
-            bool P1_wrong;
-            bool P1_nothing;
-            bool P2_correct;
-            bool P2_wrong;
-            bool P2_nothing;
-            int P1_right_counter;
-            int P2_right_counter;
+            char p1_tapped;
+            char p2_tapped;
+            unsigned char P1_right_counter;
+            unsigned char P2_right_counter;
             static unsigned char winner;
             static unsigned char looser;
 /********************************************************************/
@@ -77,11 +73,15 @@ void mode1_fsm_play(void) {
     if (!running) {
         running = TRUE;
         game_ended = FALSE;
-        current_state = IDLE;
+        current_state = INITIALIZE;
         blink_count = 0;
         counter = 0;
     }
 }
+
+#define correct(a) ((a) == CORRECT)
+#define none(a) ((a) == NONE)
+#define wrong(a) ((a) == WRONG)
 
 /********************************************************************
  * Function:        simple_example(void)
@@ -135,6 +135,7 @@ void mode1_fsm(void) {
                     blink_count++;
                 } else {
                     current_state = PATTERN_ON;
+                    display_pattern();
                 }
             } else {
                 current_state = DISPLAY_OFF;
@@ -143,61 +144,55 @@ void mode1_fsm(void) {
             break;
          
         case PATTERN_ON :
-            round++;
-            display_pattern();
             
-            if (pattern_done == 1) {current_state = LIGHT_RED; counter = 0;}
+            if (pattern_done) {current_state = LIGHT_RED; counter = 0; AUDIO_playSound(SOUND_READY);round++;}
             break;
             
         case LIGHT_RED :
+            if (counter == 0)
+            {
             STATE_setState(PLAYER_1,STATE_READY);
             STATE_setState(PLAYER_2,STATE_READY);
-            AUDIO_playSound(SOUND_READY);
+            LEDS_update();}
             counter++;
-            LEDS_update();
-            
-            if (counter == 1000) {current_state = LIGHT_YELLOW; counter = 0;}
+            if (counter == 1000) {current_state = LIGHT_YELLOW; counter = 0; AUDIO_playSound(SOUND_SET);}
             break;
             
         case LIGHT_YELLOW :
-            STATE_setState(PLAYER_1,STATE_SET);
+            if (counter == 0)
+            {STATE_setState(PLAYER_1,STATE_SET);
             STATE_setState(PLAYER_2,STATE_SET);
-            AUDIO_playSound(SOUND_SET);
+            LEDS_update();}
             counter++;
-            LEDS_update();
-            
-            if (counter == 1000) {current_state = LIGHT_GREEN; counter = 0;}
+            if (counter == 1000) {current_state = LIGHT_GREEN; counter = 0; AUDIO_playSound(SOUND_GO);}
             break;
             
         case LIGHT_GREEN :
-            STATE_setState(PLAYER_1,STATE_GO);
+            if(counter == 0)
+            {STATE_setState(PLAYER_1,STATE_GO);
             STATE_setState(PLAYER_2,STATE_GO);
-            AUDIO_playSound(SOUND_GO);
+            LEDS_update();}
             counter++;
-            LEDS_update();
-            
             /* Enable checking of taps in display pattern FSM */
             enable_tapping();
             
             current_state = PLAY;
         
         case PLAY : 
-            STATE_setState(PLAYER_1,STATE_NONE);
-            STATE_setState(PLAYER_2,STATE_NONE);
-            AUDIO_playSound(SOUND_NONE);
             LEDS_update();
             timer++;
+            round_ended = 0;
             
             if (timer >= 30000) current_state = ROUND_CHECK;
-            if (P1_correct & P2_correct) current_state = BOTH_CORRECT;
-            if (P1_correct & P2_wrong) current_state = P1_CORRECT_P2_WRONG;
-            if (P1_correct & P2_nothing) current_state = P1_CORRECT_P2_NOTHING;
-            if (P1_wrong & P2_correct) current_state = P1_WRONG_P2_CORRECT;
-            if (P1_wrong & P2_wrong) current_state = BOTH_WRONG;
-            if (P1_wrong & P2_nothing) current_state = P1_WRONG_P2_NOTHING;
-            if (P1_nothing & P2_correct) current_state = P1_NOTHING_P2_CORRECT;
-            if (P1_nothing & P2_wrong) current_state = P1_NOTHING_P2_WRONG;
-            if (P1_nothing & P2_nothing) current_state = PLAY;
+            if (correct(p1_tapped) & correct(p2_tapped)) current_state = BOTH_CORRECT;
+            if (correct(p1_tapped) & wrong(p2_tapped)) current_state = P1_CORRECT_P2_WRONG;
+            if (correct(p1_tapped) & none(p2_tapped)) current_state = P1_CORRECT_P2_NOTHING;
+            if (wrong(p1_tapped) & correct(p2_tapped)) current_state = P1_WRONG_P2_CORRECT;
+            if (wrong(p1_tapped) & wrong(p2_tapped)) current_state = BOTH_WRONG;
+            if (wrong(p1_tapped) & none(p2_tapped)) current_state = P1_WRONG_P2_NOTHING;
+            if (none(p1_tapped) & correct(p2_tapped)) current_state = P1_NOTHING_P2_CORRECT;
+            if (none(p1_tapped) & wrong(p2_tapped)) current_state = P1_NOTHING_P2_WRONG;
+            if (none(p1_tapped) & none(p2_tapped)) current_state = PLAY;
             break;
             
         case BOTH_CORRECT :
@@ -341,7 +336,7 @@ void mode1_fsm(void) {
             break;
             
         case ROUND_CHECK :
-            
+            round_ended = TRUE;
             if (round < 5) current_state = DISPLAY_ON;
             else current_state = EXIT_MODE1;
             break;
