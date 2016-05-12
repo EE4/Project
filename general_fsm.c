@@ -74,7 +74,7 @@ void general_fsm(void)
             switch (p1_pressed) {
                 case INDEX:
                     /* TODO: Update to MODE1 */
-                    state = IDLE;
+                    state = PRE_MODE1;
                     break;
                 case MIDDLE:
                     /* TODO: Update to MODE2 */
@@ -89,9 +89,10 @@ void general_fsm(void)
             break;
         case PRE_MODE1:
             // *** outputs ***
-            
+            MODE_setMode(1);
+            mode1_fsm_play();
             // *** transitions ***
-            
+            state = MODE1;
             break;
         case MODE1:
             // *** outputs ***

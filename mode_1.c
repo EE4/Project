@@ -19,6 +19,7 @@
 static unsigned char counter;
 static int timer = 0;
 static int blink_count = 0;
+static bool running;
 static enum {INITIALIZE, 
             DISPLAY_ON, 
             DISPLAY_OFF, 
@@ -62,13 +63,24 @@ static enum {INITIALIZE,
  *                  hardware_init() for the hardware functions should
  *                  be called here.              
  ********************************************************************/
-void mode_1_init(void) {
+void mode1_fsm_init(void) {
 	current_state = INITIALIZE;
     state_to_recover = INITIALIZE;
 	counter = 0;
     timer = 0;
 	
     hardware_init();    
+}
+
+
+void mode1_fsm_play(void) {
+    if (!running) {
+        running = TRUE;
+        game_ended = FALSE;
+        current_state = IDLE;
+        blink_count = 0;
+        counter = 0;
+    }
 }
 
 /********************************************************************
@@ -79,21 +91,25 @@ void mode_1_init(void) {
  * Overview:        A simple FSM that will start blinking a led on 
  *                  and off once you pushed a button.          
  ********************************************************************/
-void mode_1_fsm(void) {
+void mode1_fsm(void) {
     
     switch (current_state) {                
         case INITIALIZE :
-            SCORE_setScore(0);
-            LIVES_setLives(PLAYER_1,5);
-            LIVES_setLives(PLAYER_2,5);
-            STATE_setState(PLAYER_1,STATE_NONE);
-            STATE_setState(PLAYER_2,STATE_NONE);
-            MODE_setMode(1);
-            PATTERN_setPattern(PLAYER_1,PATTERN_NONE);
-            PATTERN_setPattern(PLAYER_2,PATTERN_NONE);
-            LEDS_update();
-            
-            current_state = DISPLAY_ON;
+            if (running) {
+                SCORE_setScore(0);
+                LIVES_setLives(PLAYER_1,5);
+                LIVES_setLives(PLAYER_2,5);
+                STATE_setState(PLAYER_1,STATE_NONE);
+                STATE_setState(PLAYER_2,STATE_NONE);
+                MODE_setMode(1);
+                PATTERN_setPattern(PLAYER_1,PATTERN_NONE);
+                PATTERN_setPattern(PLAYER_2,PATTERN_NONE);
+                LEDS_update();
+
+                current_state = DISPLAY_ON;
+            } else {
+                current_state = INITIALIZE;
+            }
             break;
 
         case DISPLAY_ON :
@@ -102,7 +118,6 @@ void mode_1_fsm(void) {
             PATTERN_setPattern(PLAYER_2,PATTERN_ALL);
             counter++;
             LEDS_update();
-            blink_count++;
         
             if (counter == 200) current_state = DISPLAY_OFF;
             break;
@@ -113,10 +128,18 @@ void mode_1_fsm(void) {
             PATTERN_setPattern(PLAYER_2,PATTERN_NONE);
             counter--;
             LEDS_update();
-            blink_count++;
-        
-            if (counter == 0 && blink_count < 6) current_state = DISPLAY_ON;
-            if (blink_count == 6) current_state = PATTERN_ON;
+            
+            if (!counter) {
+                if (blink_count < 3) {
+                    current_state = DISPLAY_ON; 
+                    blink_count++;
+                } else {
+                    current_state = PATTERN_ON;
+                }
+            } else {
+                current_state = DISPLAY_OFF;
+            }
+            
             break;
          
         case PATTERN_ON :
@@ -152,6 +175,9 @@ void mode_1_fsm(void) {
             AUDIO_playSound(SOUND_GO);
             counter++;
             LEDS_update();
+            
+            /* Enable checking of taps in display pattern FSM */
+            enable_tapping();
             
             current_state = PLAY;
         

@@ -54,8 +54,11 @@ void main(void) {
         
         feedback_fsm();
         
+        display_pattern_fsm();
+        
         LEDS_tick();
         
+        mode1_fsm();
         mode3_fsm();
         
         AUDIO_tap(p1_pressed);
@@ -91,7 +94,10 @@ static void init(void)
     
     general_fsm_init();
     
+    mode1_fsm_init();
     mode3_fsm_init();
+    
+    display_pattern_fsm_init();
 }
 
 //EOF-------------------------------------------------------------------------

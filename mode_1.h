@@ -14,8 +14,9 @@ extern "C" {
 
 #include "config.h"
     
-void mode_1_init(void);
-void mode_1_fsm(void);
+void mode1_fsm_init(void);
+void mode1_fsm_play(void);
+void mode1_fsm(void);
 
 #ifdef	__cplusplus
 }

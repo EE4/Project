@@ -17,6 +17,7 @@
       <itemPath>display_pattern_fsm.h</itemPath>
       <itemPath>func_rand.h</itemPath>
       <itemPath>general_fsm.h</itemPath>
+      <itemPath>mode_1.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -38,6 +39,7 @@
       <itemPath>func_display.c</itemPath>
       <itemPath>mode3_fsm.c</itemPath>
       <itemPath>general_fsm.c</itemPath>
+      <itemPath>mode_1.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
