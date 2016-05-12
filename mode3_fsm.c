@@ -13,148 +13,150 @@
 
 static int counter;
 static bool running;
-static bool p1lock;
-static bool p2lock;
-static int arrow;
-static int lives;
+
+static unsigned char prev_p1;
+static unsigned char prev_p2;
 
 static enum {
-    INITIALIZE = 0,
+    IDLE = 0,
     LIGHT_RED,
     LIGHT_YELLOW,
     LIGHT_GREEN,
     PLAY,
-    P1_TAP,
-    P2_TAP,
-    IDLE,
-    P1_UNLOCK,
-    P2_UNLOCK,
     P1_WIN,
     P2_WIN,
-    GAME_OVER
+    DELIBERATE,
+    GAME_DONE
 } current_state;
 
 void mode3_fsm_init(void) 
 {
-    current_state = INITIALIZE;
+    current_state = IDLE;
 }
 
 void mode3_fsm_play(void)
 {
-    if (!running)
+    if (!running) {
         running = TRUE;
-    game_ended = FALSE;
+        game_ended = FALSE;
+        current_state = IDLE;
+        counter = 0;
+    }
 }
         
 void mode3_fsm(void){
     
     switch (current_state) {                
-        case INITIALIZE:
-            
-            SCORE_setScore(0);
-            
-            LIVES_setLives(PLAYER_1, 5);
-            LIVES_setLives(PLAYER_2, 5);
-            
-            MODE_setMode(2);
-            
-            PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
-            PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
-            
-            STATE_setState(PLAYER_1, STATE_NONE);
-            STATE_setState(PLAYER_2, STATE_NONE);
-            
-            LEDS_update();
-            
-            if (running)
-                current_state = LIGHT_RED;
-            break;
-            
-        case LIGHT_RED:
-            
-            STATE_setState(PLAYER_1, STATE_READY);
-            STATE_setState(PLAYER_2, STATE_READY);
-            
-            LEDS_update();
-            
-            AUDIO_playSound(SOUND_READY);
-             counter++;
-             if (counter == 1000) 
-                 current_state = LIGHT_YELLOW;
-            break; 
-            
-        case LIGHT_YELLOW:
-            STATE_setState(PLAYER_1, STATE_SET);
-            STATE_setState(PLAYER_2, STATE_SET);
-            
-             LEDS_update();
-             AUDIO_playSound(SOUND_SET);
-             counter++;
-             if (counter == 2000) current_state = LIGHT_GREEN;
-              break;   
-              
-        case LIGHT_GREEN: 
-            STATE_setState(PLAYER_1, STATE_GO);
-            STATE_setState(PLAYER_2, STATE_GO);
-            
-             LEDS_update();
-             AUDIO_playSound(SOUND_GO);
-             counter++;
-             if (counter == 3000) current_state = PLAY;
-         break;
-         
-        case PLAY:
-            if ( p1_pressed == TRUE) current_state = P1_TAP;
-            if ( p2_pressed == TRUE) current_state = P2_TAP;
-             break;
-             
-        case P1_TAP:
-            p1lock = TRUE;
-             arrow++;
-            SCORE_setScore(arrow);
-            if (p2_pressed == TRUE&&p2lock == FALSE) current_state = P2_TAP;
-            if(arrow>10) current_state = P1_WIN;
-            else (current_state = IDLE);
-             break;
-             
-        case P2_TAP:
-            p2lock = TRUE;
-            arrow--;
-            SCORE_setScore(arrow);
-            if (p1_pressed  == TRUE&&p1lock == FALSE) current_state = P1_TAP;
-             if(arrow<-10) current_state = P2_WIN;
-            else (current_state = IDLE);
-             break;
-             
         case IDLE:
-             if (p2_pressed == TRUE&&p2lock == FALSE) current_state = P2_TAP;
-             if (p1_pressed  == TRUE&&p1lock == FALSE) current_state = P1_TAP;
-             if (p1_pressed  == FALSE&&p1lock == TRUE) current_state = P1_UNLOCK;
-             if (p2_pressed == FALSE&&p2lock == TRUE) current_state = P2_UNLOCK;
-             break;
-             
-        case P1_UNLOCK:
-            p1lock = FALSE;
-            current_state = IDLE;
-            break;
-     
-        case P2_UNLOCK:
-            p1lock = FALSE;
-            current_state = IDLE;
-            break; 
+            if (running) {
+                AUDIO_playSound(SOUND_READY);
                 
+                current_state = LIGHT_RED;
+            } else {
+                current_state = IDLE;
+            }
+            break;
+        case LIGHT_RED:
+            if (0 == counter) {
+                STATE_setState(PLAYER_1, STATE_READY);
+                STATE_setState(PLAYER_2, STATE_READY);
+
+                LEDS_update();
+            }
+
+            counter++;
+            
+            if (counter == 1000) {
+                
+                AUDIO_playSound(SOUND_READY);
+                current_state = LIGHT_YELLOW;
+            }
+            break;
+        case LIGHT_YELLOW:
+            if (1000 == counter) {
+                STATE_setState(PLAYER_1, STATE_SET);
+                STATE_setState(PLAYER_2, STATE_SET);
+
+                LEDS_update();
+            }
+            
+            counter++;
+            
+            if (counter == 2000) {
+               AUDIO_playSound(SOUND_READY);
+
+                
+                current_state = LIGHT_GREEN;
+            }
+            break;
+        case LIGHT_GREEN:
+            if (2000 == counter) {
+                STATE_setState(PLAYER_1, STATE_GO);
+                STATE_setState(PLAYER_2, STATE_GO);
+
+                LEDS_update();
+            }
+            counter = 0;
+            current_state = PLAY;
+            break;
+        case PLAY:
+            counter++;
+            
+            if (p1_pressed && !p2_pressed) {
+                SCORE_updateScore(1);
+            } else if (p2_pressed && !p1_pressed) {
+                SCORE_updateScore(-1);
+            } else {
+                /* Doesn't do anything */
+            }
+            
+            AUDIO_tap(p1_pressed);
+            AUDIO_tap(p2_pressed);
+            
+            if (SCORE_getScore() > 7) {
+                current_state = P1_WIN;
+            } else if (SCORE_getScore() < -7) {
+                current_state = P2_WIN;
+            } else if (counter > 30000) {
+                current_state = DELIBERATE;
+            } else {
+                current_state = PLAY;
+            }
+            
+            break;
+            
+        case DELIBERATE:
+            // *** outputs ***
+            
+            // *** transition conditions ***
+            if (SCORE_getScore() > 0) {
+                current_state = P1_WIN;
+            } else if (SCORE_getScore() < 0) {
+                current_state = P2_WIN;
+            } else {
+                current_state = GAME_DONE;
+            }
+            break;
         case P1_WIN:
             AUDIO_playSound(SOUND_WON);
-            current_state = GAME_OVER;
+            current_state = GAME_DONE;
+            game_ended = TRUE;
+            running = FALSE;
             break;
         case P2_WIN:
             AUDIO_playSound(SOUND_WON);
-            current_state = GAME_OVER;
-            break;
-        case GAME_OVER :
-            current_state = INITIALIZE;
-            game_ended = FALSE;
+            current_state = GAME_DONE;
+            game_ended = TRUE;
             running = FALSE;
             break;
+        case GAME_DONE:
+            running = FALSE;
+            game_ended = TRUE;
+            current_state = IDLE;
+            break;
+        default:
+            current_state = IDLE;
+            game_ended = TRUE;
+            running = FALSE;
     }
 }

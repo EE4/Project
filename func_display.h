@@ -31,6 +31,7 @@ void MODE_clrMode(unsigned char);
 /*
  *  Function to update entire SIPO-chain
  */
+void LEDS_tick(void);
 void LEDS_init(void);
 void LEDS_update(void);
 

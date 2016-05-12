@@ -8,6 +8,12 @@
 #include "feedback_fsm.h"
 
 //===----------------------------------------------------------------------===//
+//  CONSTANTS
+//===----------------------------------------------------------------------===//
+#define ON  (0)
+#define OFF (1)
+
+//===----------------------------------------------------------------------===//
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
 
@@ -27,6 +33,12 @@ static bool feedback_p2;
 //===----------------------------------------------------------------------===//
 //  API FUNCTIONS
 //===----------------------------------------------------------------------===//
+
+void FEEDBACK_init(void)
+{
+    D_HAP_P1 = OFF;
+    D_HAP_P2 = OFF;
+}
 
 void FEEDBACK_giveFeedback(unsigned char player)
 {
@@ -48,8 +60,6 @@ void feedback_fsm_init(void)
     state = HAPTIC_IDLE;
     timer_p1 = 0;
     timer_p2 = 0;
-    feedback_p1 = FALSE;
-    feedback_p2 = FALSE;
 }
 
 void feedback_fsm(void)
@@ -58,8 +68,8 @@ void feedback_fsm(void)
         case HAPTIC_IDLE:
             
             /* OUTPUTS */
-            D_HAP_P1 = 0;
-            D_HAP_P2 = 0;
+            D_HAP_P1 = OFF;
+            D_HAP_P2 = OFF;
             timer_p1 = 0;
             timer_p2 = 0;
             
@@ -78,8 +88,8 @@ void feedback_fsm(void)
         case HAPTIC_P1:
             
             /* OUTPUTS */
-            D_HAP_P1 = 1;
-            D_HAP_P2 = 0;
+            D_HAP_P1 = ON;
+            D_HAP_P2 = OFF;
             timer_p1++;
             timer_p2 = 0;
             
@@ -99,8 +109,8 @@ void feedback_fsm(void)
         case HAPTIC_P2:
             
             /* OUTPUTS */
-            D_HAP_P1 = 0;
-            D_HAP_P2 = 1;
+            D_HAP_P1 = OFF;
+            D_HAP_P2 = ON;
             timer_p2++;
             timer_p1 = 0;
             
@@ -120,8 +130,8 @@ void feedback_fsm(void)
         case HAPTIC_BOTH:
             
             /* OUTPUTS */
-            D_HAP_P1 = 1;
-            D_HAP_P2 = 1;
+            D_HAP_P1 = ON;
+            D_HAP_P2 = ON;
             timer_p1++;
             timer_p2++;
             

@@ -22,6 +22,7 @@ unsigned short PWM_duty[PWM_CHANNELS];
 // (cfr. 'private' in Java)
 static unsigned short servo_counter;
 static unsigned short mode_counter;
+static unsigned char cycles;
 
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 // 'static' implies that the function can only be used in this file
@@ -50,7 +51,6 @@ void PWM_init(void) {
     
     /* Set-up interrupt */
     OpenTimer1(TRUE);
-	
 }
 
 /********************************************************************
@@ -62,9 +62,9 @@ void PWM_init(void) {
  *                  duty cycles and set the outputs accordingly
  ********************************************************************/
 void PWM_ISR(void) {
-    if (PIR1bits.TMR1IF == 1) {
+    if (PIR1bits.TMR1IF) {
         /* Tuned to 20kHz interrupt frequency */
-        TMR1H = 0xFD; 
+        TMR1H = 0xFD;
         TMR1L = 0xA7;
         
         /* Tuned to 50Hz PWM-frequency with a resolution of 400, this
@@ -101,16 +101,18 @@ void PWM_ISR(void) {
 static void OpenTimer1(unsigned char intEnable) {
     T1CONbits.RD16 = 0;
     T1CONbits.TMR1CS = 0;
-    T1CONbits.TMR1ON = 1;
 
     /* Tuned to 20kHz interrupt frequency */
     TMR1H = 0xFD;
-    TMR1L = 0xA7;
+    TMR1L = 0xA7; // A7
     
-    PIE1bits.TMR1IE = intEnable & 0x01;
-    INTCONbits.GIE = (intEnable & 0x01) | INTCONbits.GIE;
-    INTCONbits.PEIE = (intEnable & 0x01) | INTCONbits.PEIE;
-    IPR1bits.TMR1IP = 0;
+    PIE1bits.TMR1IE = 1;
+    IPR1bits.TMR1IP = 1;
     PIR1bits.TMR1IF = 0;      // Clear Timer1 overflow flag
+    
+    T1CONbits.TMR1ON = 1;
+    
+    INTCONbits.PEIE = TRUE;
+    INTCONbits.GIE = TRUE;
 }
 //EOF-----------------------------------------------------------------

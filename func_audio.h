@@ -19,6 +19,7 @@ extern "C" {
 void AUDIO_ISR(void);
 void AUDIO_init(void);
 void AUDIO_playSound(int to_play);
+void AUDIO_tap(unsigned char);
 
 #ifdef	__cplusplus
 }

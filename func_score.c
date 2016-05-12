@@ -9,13 +9,15 @@
 
 #include "func_score.h"
 
-#define MIN_DUTY   (13)
-#define MAX_DUTY   (42)
+#define MIN_DUTY   (11) // 17 
+#define MAX_DUTY   (32) // 38
 #define MAX_SCORE  ((MAX_DUTY - MIN_DUTY - 1) / 2)
 #define MIN_SCORE  (-((MAX_DUTY - MIN_DUTY - 1) / 2))
 #define MID_DUTY   (MIN_DUTY + ((MAX_DUTY - MIN_DUTY - 1) / 2))
 
-static short score = 0;
+static int score = 0;
+
+bool servo_idle;
 
 static void DUTY_update(void)
 {
@@ -26,6 +28,8 @@ static void DUTY_update(void)
     
     /* Update */
     PWM_duty[SERVO_CHANNEL] = duty;
+    
+    servo_idle = 0;
 }
 
 static void SCORE_condition(void)

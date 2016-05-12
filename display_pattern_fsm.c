@@ -33,9 +33,9 @@ static unsigned char patterns[MAX_PATTERNS] = {0};
 /*
  * Indexes for keeping track scores afterwards
  */
-static unsigned char P1_right_counter;
-static unsigned char P2_right_counter;
-   static unsigned char index;
+unsigned char P1_right_counter;
+unsigned char P2_right_counter;
+static unsigned char index;
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC VARIABLES

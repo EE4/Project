@@ -36,6 +36,8 @@ static const unsigned char *sound;
 //  PUBLIC VARIABLES
 //===----------------------------------------------------------------------===//
 
+bool sound_done;
+
 //===----------------------------------------------------------------------===//
 //  PRIVATE DECLARATIONS
 //===----------------------------------------------------------------------===//
@@ -49,7 +51,6 @@ void AUDIO_setupPWM(void)
      *  Required freq.          = 100 kHz
      *  Counts                  = 120
      *  PR2 (counts - 1)        = 119
-     *
      */
 
     T2CON = 0b00000000;     /* Timer 2 control register
@@ -59,10 +60,11 @@ void AUDIO_setupPWM(void)
                              *  bit 1-0: Clock prescale select (01 -> 1/4)
                              */
 
+    IPR1bits.TMR2IP = 0;
     PIR1bits.TMR2IF = 0;    /* Clear Timer 2 interrupt flag */
     PIE1bits.TMR2IE = 0;    /* Disable interrupts for Timer 2 */
 
-    PR2 = C_PWM;            /* Overflow value for PWM CLK */
+    PR2 = C_PWM;   /* Overflow value for PWM CLK */
 
     CCPR1L = 0x80;          /* Initial dutycycle of 50% (128) */
 
@@ -98,21 +100,16 @@ void AUDIO_setupSampler(void)
      *
      */
 
-    TMR0L = P_SAMPLE;       /* Overflow after C_SAMPLE counts */
+    TMR0L = (char)P_SAMPLE; /* Overflow after C_SAMPLE counts */
 
-    INTCON = 0x60;          /* Interrupt Control Register
-                             *  bit7 "0": Global interrupt Enable
-                             *  bit6 "1": Peripheral Interrupt Enable
-                             *  bit5 "1": Enables the TMR0 overflow interrupt
-                             *  bit4 "0": Diables the INT0 external interrupt
-                             *  bit3 "0": Disables the RB port change interrupt
-                             *  bit2 "0": TMR0 Overflow Interrupt Flag bit
-                             *  bit1 "0": INT0 External Interrupt Flag bit
-                             *  bit0 "0": RB Port Change Interrupt Flag bit
-                             */
-
-    T0CONbits.TMR0ON = 1;   /* Enable Timer 0 */
-    INTCONbits.GIE = 1;     /* Enable interrupt */
+    INTCONbits.TMR0IE = 1;
+    INTCONbits.TMR0IF = 0;
+    
+    /* Make sampler high priority */
+    INTCON2bits.TMR0IP = 1;
+    
+    /* Enable Timer 0 */
+    T0CONbits.TMR0ON = 1;
 }
 
 static void AUDIO_update_sample(const unsigned char a)
@@ -124,10 +121,11 @@ static void AUDIO_update_sample(const unsigned char a)
 
 static void AUDIO_tick(void)
 {
-    if (sound && sample < sound_length) {
-        AUDIO_update_sample(sound[sample]);
+    if (sample < sound_length) {
+        AUDIO_update_sample((const unsigned char)sound[sample++]);
     } else {
-        sound = 0;
+        sound_done = 1;
+        AUDIO_update_sample(0x80);
     }
 }
 
@@ -139,14 +137,10 @@ void AUDIO_ISR(void)
 {
     if (INTCONbits.TMR0IF) {
         /* Interrupt is coming from Timer 0 */
-
-        //AUDIO_tick();
         
-        PORTB ^= 0xFF;
-        
-        AUDIO_update_sample(select[sample++]);
+        AUDIO_tick();
 
-        TMR0L = P_SAMPLE; /* Overflow after C_SAMPLE counts */
+        TMR0L = (uint8_t)P_SAMPLE; /* Overflow after C_SAMPLE counts */
 
         INTCONbits.TMR0IF = 0; /* Reset interrupt flag */
     }
@@ -156,19 +150,61 @@ void AUDIO_playSound(int to_play)
 {
     /* Set the sound buffer */
     switch (to_play) {
-        case SOUND_TAP:
-            sound = tap;
-            break;
         case SOUND_SELECT:
-            sound = select;
+            sound = do_central;
+            sound_length = DO_CENTRAL_LENGTH;
+            break;
+        case SOUND_WON:
+            sound = do_central;
+            sound_length = DO_CENTRAL_LENGTH;
+            break;
+        case SOUND_READY: /* Intentional fall-through */
+        case SOUND_SET: /* Intentional fall-through */
+        case SOUND_GO: /* Intentional fall-through */
+            sound = ready;
+            sound_length = READY_LENGTH;
             break;
         default:
+            sound_length = 0;
             sound = 0;
     }
+    
+    /* Reset sample count */
+    sample = 0;
+    sound_done = 0;
+}
 
+
+void AUDIO_tap(unsigned char pattern)
+{
+    switch (pattern) {
+        case NONE: /* intention */
+            return;
+        case INDEX:
+            sound = do_central;
+            sound_length = DO_CENTRAL_LENGTH;
+            break;
+        case MIDDLE:
+            sound = fa_central;
+            sound_length = FA_CENTRAL_LENGTH;
+            break;
+        case RING:
+            sound = sol_central;
+            sound_length = SOL_CENTRAL_LENGTH;
+            break;
+        case PINKY:
+            sound = do_second;
+            sound_length = DO_SECOND_LENGTH;
+            break;
+        default:
+            sound_length = 0;
+            sound = 0;
+    }
+    
     /* Reset sample count */
     sample = 0;
 }
+
 
 void AUDIO_init(void)
 {

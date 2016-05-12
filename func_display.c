@@ -11,8 +11,8 @@
 //===----------------------------------------------------------------------===//
 //  CONSTANTS
 //===----------------------------------------------------------------------===//
-#define LIVES_MASK  (0x70)
-#define STATE_MASK  (0x8F)
+#define LIVES_MASK  (0x0E)
+#define STATE_MASK  (0xF1)
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC  VARIABLES
@@ -37,17 +37,29 @@ static uint8_t pattern_p1;
 static uint8_t pattern_p2;
 
 /*
- *  Q1 - LIVE 2
- *  Q2 - LIVE 3
- *  Q3 - LIVE 4
- *  Q4 - LIVE 5
- *  Q5 - GREEN
- *  Q6 - YELLOW
- *  Q7 - RED
- *  Q8 - LIVE 1
+ *  Q8 - LIVE 2
+ *  Q7 - LIVE 3
+ *  Q6 - LIVE 4
+ *  Q5 - LIVE 5
+ *  Q4 - GO
+ *  Q3 - SET
+ *  Q2 - READY
+ *  Q1 - LIVE 1
  */
 static uint8_t lives_p1;
 static uint8_t lives_p2;
+
+static bool leds_update;
+
+static enum {
+    PRE = 0,
+    LIVES_P2,
+    PATTERN_P2,
+    PATTERN_P1,
+    LIVES_P1,
+    POST  
+} state;
+
 
 //===----------------------------------------------------------------------===//
 //  PRIVATE PROTOTYPES
@@ -56,24 +68,37 @@ static uint8_t lives_p2;
 static unsigned char PATTERN_translate(unsigned char pattern)
 {
     if (PATTERN_NONE == pattern)
-        return (unsigned char)0;
+        return 0;
     else if (PATTERN_ALL == pattern)
-        return (unsigned char)0xFF;
+        return 0xFF;
 
     /* Shift according to pattern */
-    return (0x80 >> ((int)pattern - 1));
+    return (uint8_t)(0x80 >> (uint8_t)((int)pattern) - 1);
 }
 
 static unsigned char LIVES_translate(unsigned char lives)
 {
-    /* 5 leds on -> shifted to the right how many lives there are left:
+    /* 5 leds on -> shifted to the left how many lives there are left:
      * f.e. lives = 0 means shifting to the right 5 times, nothing left
      *      lives = 5 means shifting to the right 0 times, 5 lives left
+     * 
+     * 1111 1000
+     *  |
+     *  V (lives = 3)
+     * 1110 0000
+     *  |
+     *  V (gauge_lives >> 7)    | (gauge_lives << 1)
+     * 0000 0001                | 1100 0000
+     *  |
+     *  V
+     * 1100 0001
+     * 
      */
-    unsigned char gauge_lives = 0x1F >> (5 - lives);
-
+    
+    unsigned char gauge_lives = 0xF8 << (5 - lives);
+    
     /* Now format bits like they are connected to the SIPO */
-    return (unsigned char)((gauge_lives >> 1) | (gauge_lives << 7));
+    return (unsigned char)((gauge_lives >> 7) | (gauge_lives << 1));
 }
 
 static unsigned char LIVE_inv_translate(unsigned char lives)
@@ -96,6 +121,7 @@ static unsigned char LIVE_inv_translate(unsigned char lives)
     return lives_left;
 }
 
+
 static unsigned char STATE_translate(unsigned char state)
 {
     unsigned char _state = 0x01 << (state - 1);
@@ -106,48 +132,54 @@ static unsigned char STATE_translate(unsigned char state)
         return (unsigned char)0xFF;
 
     /* Now format bits like they are connected to the SIPO */
-    return (unsigned char)(_state << 4);
+    return (unsigned char)(_state << 1);
 }
 
 static void MODE_doSet(unsigned char mode, bool value)
 {
     /* Don't put PWM on mode display */
     mode_idle = FALSE;
-
+    
     switch (mode) {
         case 0:
             break;
         case MODE_1:
             D_MODE1 = value;
+            D_MODE2 = FALSE;
+            D_MODE3 = FALSE;
             break;
         case MODE_2:
             D_MODE2 = value;
+            D_MODE1 = FALSE;
+            D_MODE3 = FALSE;
             break;
         case MODE_3:
             D_MODE3 = value;
+            D_MODE1 = FALSE;
+            D_MODE2 = FALSE;
             break;
         default:
+            if (MODE_ALL == mode) {
+                D_MODE3 = value;
+                D_MODE1 = value;
+                D_MODE2 = value;
+            }
+                    
             /* Do nothing */
             NOP();
     }
 }
 
-static void SIPO_do_write_byte(char a)
+static void SIPO_do_write_bit(char a, int index)
 {
-    /* Shift out 8 bits on rising clock edge */
-    for (int i = 0; i < 8; i++) {
-        /* Put bit at index on data pin */
-        D_SERIAL_O = (a >> i) & 0x01;
-
-        /* Give a rising edge to sample data-pin */
-        D_SERIAL_CK = 1;
-
-        /* Give certain amount of time to sample */
-        NOP();
-
-        /* Turn off CLK */
-        D_SERIAL_CK = 0;
-    }
+    unsigned short i = 0;
+    /* Put bit at index on data pin */
+    D_SERIAL_O = ((a >> index) & 0x01);
+    
+    /* Give a rising edge to sample data-pin */
+    D_SERIAL_CK = 1;
+    
+    D_SERIAL_CK = 0;
 }
 
 //===----------------------------------------------------------------------===//
@@ -174,14 +206,17 @@ void STATE_setState(unsigned char player, unsigned char state)
     } else {
         /* Do nothing */
     }
+    
 }
 
 void LIVES_setLives(unsigned char player, unsigned char lives)
 {
     if (PLAYER_1 == player) {
         lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
+        //lives_p1 = 0xAA;
     } else if (PLAYER_2 == player) {
         lives_p2 = (lives_p2 & LIVES_MASK) | LIVES_translate(lives);
+        //lives_p2 = 0xFF;
     } else {
         /* Do nothing */
     }
@@ -201,52 +236,122 @@ unsigned char LIVES_getLives(unsigned char player)
 
 void MODE_setMode(unsigned char mode)
 {
+    mode_idle = FALSE;
     MODE_doSet(mode, TRUE);
 }
 
 void MODE_clrMode(unsigned char mode)
 {
+    mode_idle = FALSE;
     MODE_doSet(mode, FALSE);
 }
 
+static unsigned char bit_count;
+
 void LEDS_init(void)
 {
-    T_SERIAL_OE = OUTPUT;
-    T_SERIAL_CK = OUTPUT;
-    T_SERIAL_O  = OUTPUT;
-    T_STROBE    = OUTPUT;
-
     D_SERIAL_OE = FALSE;
     D_SERIAL_CK = FALSE;
     D_SERIAL_O = FALSE;
     D_STROBE = FALSE;
+    
+    state = PRE;
+    bit_count = 0;
+}
+
+
+void LEDS_tick(void)
+{
+    D_SCORE = 1;   
+    
+    
+    switch (state) {
+        case PRE:
+
+            /* Output enable on */
+            D_SERIAL_OE = 1;
+            
+            if (leds_update)
+                state = LIVES_P2;
+            else 
+                state = PRE;
+            
+            /* Make sure the updating can be triggered again during updating */
+            leds_update = 0;
+
+            break;
+        case LIVES_P2:
+            
+            SIPO_do_write_bit(lives_p2, bit_count);
+            
+            if (++bit_count == 8) {
+                bit_count = 0;
+                state = PATTERN_P2;
+            } else {
+                state = LIVES_P2;
+            }
+            
+            break;
+        case PATTERN_P2:
+            
+            SIPO_do_write_bit(pattern_p2, bit_count);
+            
+            if (++bit_count == 8) {
+                bit_count = 0;
+                state = PATTERN_P1;
+            } else {
+                state = PATTERN_P2;
+            }
+            
+            break;
+        case PATTERN_P1:
+            
+            SIPO_do_write_bit(pattern_p1, bit_count);
+            
+            if (++bit_count == 8) {
+                bit_count = 0;
+                state = LIVES_P1;
+            } else {
+                state = PATTERN_P1;
+            }
+            
+            break;
+        case LIVES_P1:
+            
+            SIPO_do_write_bit(lives_p1, bit_count);
+            
+            if (++bit_count == 8) {
+                bit_count = 0;
+                state = POST;
+            } else {
+                state = LIVES_P1;
+            }
+            
+            break;
+        case POST:
+
+            /* Strobe high to put serial data on
+             * parallel outputs */
+            D_STROBE = 1;
+
+            /* Give the SIPO the time to sample strobe and
+             * to put data on outputs */
+
+            NOP();
+
+            /* Strobe low */
+            D_STROBE = 0;
+
+            /* Output enable high */
+            D_SERIAL_OE = 1;
+    
+            state = PRE;
+            
+            break;
+    }
 }
 
 void LEDS_update(void)
 {
-    /* Output enable on */
-    D_SERIAL_OE = 1;
-
-    /*
-     *  UPDATE THIS ORDER ACCORDING TO HOW
-     *  THE DIFFERENT SIPO'S ARE CONNECTED IN
-     *  THE CHAIN.
-     */
-    SIPO_do_write_byte(lives_p1);
-    SIPO_do_write_byte(pattern_p1);
-    SIPO_do_write_byte(pattern_p2);
-    SIPO_do_write_byte(lives_p2);
-
-    /* Strobe high to put serial data on
-     * parallel outputs */
-    D_STROBE = 1;
-
-    /* Give the SIPO the time to sample strobe and
-     * to put data on outputs */
-    NOP();
-
-    /* Strobe low */
-    D_STROBE = 0;
-
-    D_SERIAL_OE = 1;
+    leds_update = 1;
 }

@@ -30,17 +30,6 @@ bool game_ended;
 /** P R I V A T E   P R O T O T Y P E S *****************************/
 static void init(void);
 
-char rl(char a)
-{
-    unsigned char temp = 0;
-    
-    temp = a;
-    a = a >> 1;
-    a |= (temp << 7) & 0x80;
-    
-    return a;
-}
-
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
 /********************************************************************
@@ -52,34 +41,29 @@ char rl(char a)
  ******************************************s**************************/
 void main(void) {
 	init();						//initialize the system
-    unsigned char byte = 0x00;
-    
-    //AUDIO_playSound(SOUND_SELECT);
-    p1_tapping_fsm_init();
-    feedback_fsm_init();
     
 	while(timed_to_1ms()) {
-        time_ms++;
         RAND_seed(seed_time++); /* Try to seed the RNG - seed_time can overflow, 
                                  * but we don't care #YOLO */
-        
+
         /* Main game FSM */
         general_fsm();
+        
         p1_tapping_fsm();
+        p2_tapping_fsm();
+        
         feedback_fsm();
         
-        if (time_ms % 2000) {
-            FEEDBACK_giveFeedback(PLAYER_1);
-        }
+        LEDS_tick();
         
-        if (!(seed_time % 128)) {
-            
-            PATTERN_setPattern(PLAYER_1, byte);
-            PATTERN_setPattern(PLAYER_2, byte);
-            
-            LEDS_update();
-            
-            byte = (byte + 1) % 5;
+        mode3_fsm();
+        
+        AUDIO_tap(p1_pressed);
+        AUDIO_tap(p2_pressed);
+        
+        if (time_ms++ < 2) {
+            FEEDBACK_giveFeedback(PLAYER_1);
+            FEEDBACK_giveFeedback(PLAYER_2);
         }
 	}
 }
@@ -100,7 +84,13 @@ static void init(void)
 {
     hardware_init();
     
+    /* Lower level drivers initialisation */
+    p1_tapping_fsm_init();
+    p2_tapping_fsm_init();
+    feedback_fsm_init();
+    
     general_fsm_init();
+    
     mode3_fsm_init();
 }
 

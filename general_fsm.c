@@ -23,6 +23,9 @@ static enum {
     MODE1,
     MODE2,
     MODE3,
+    PRE_MODE1,
+    PRE_MODE2,
+    PRE_MODE3,
 } state;
 
 static unsigned short timer = 0;
@@ -46,15 +49,15 @@ void general_fsm(void)
             
             game_ended = FALSE;
             SCORE_setScore(0);
-            LIVES_setLives(PLAYER_1, 4);
-            LIVES_setLives(PLAYER_2, 4);
-            AUDIO_playSound(NONE);
+            AUDIO_playSound(SOUND_WON);
             PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
             PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
-            STATE_setState(PLAYER_1, STATE_ALL);
-            STATE_setState(PLAYER_2, STATE_ALL);
+            STATE_setState(PLAYER_1, STATE_GO);
+            STATE_setState(PLAYER_2, STATE_READY);
+            LIVES_setLives(PLAYER_1, 5);
+            LIVES_setLives(PLAYER_2, 4);
+            MODE_setMode(MODE_ALL);
             
-            /* Update LEDS */
             LEDS_update();
             
             // *** transitions ***
@@ -63,6 +66,10 @@ void general_fsm(void)
         case IDLE:
             // *** outputs ***
             mode_idle = TRUE;
+            
+            /* Update mode duty cycle of mode display */
+            if (!((++timer) % 16))
+                PWM_duty[1] = (PWM_duty[MODE_CHANNEL] + 2) % 200;
             // *** transitions ***
             switch (p1_pressed) {
                 case INDEX:
@@ -74,13 +81,17 @@ void general_fsm(void)
                     state = IDLE;
                     break;
                 case RING:
-                    state = MODE3;
+                    state = PRE_MODE3;
                     break;
                 default:
-                    /* Update mode duty cycle of mode display */
-                    if (!((++timer) % 16))
-                        PWM_duty[1] = (PWM_duty[MODE_CHANNEL] + 2) % 200;
+                    NOP();
             }
+            break;
+        case PRE_MODE1:
+            // *** outputs ***
+            
+            // *** transitions ***
+            
             break;
         case MODE1:
             // *** outputs ***
@@ -89,6 +100,11 @@ void general_fsm(void)
             if (game_ended)
                 state = RESET;
             break;
+        case PRE_MODE2:
+            // *** outputs ***
+            
+            // *** transitions ***
+            break;
         case MODE2:
             // *** outputs ***
             
@@ -96,10 +112,16 @@ void general_fsm(void)
             if (game_ended)
                 state = RESET;
             break;
+        case PRE_MODE3:
+            // *** outputs ***
+            MODE_setMode(3);
+            mode3_fsm_play();
+           
+            // *** transitions ***
+            state = MODE3; /* Uncondtional transition */
         case MODE3:
             // *** outputs ***
-            mode3_fsm_play();
-            mode3_fsm_init();
+            
             // *** transitions ***
             if (game_ended)
                 state = RESET;

@@ -32,38 +32,11 @@ void interrupt interrupt_handler(void);
 ///
 /// INITIALISE TAPPING GRID
 ///
-void HAPTIC_init(void)
-{
-    D_HAP_P1 = 0;
-    D_HAP_P2 = 0;
-    T_HAP_P1 = OUTPUT;
-    T_HAP_P2 = OUTPUT;
-}
-
-///
-/// INITIALISE TAPPING GRID
-///
 void TAP_init(void)
 {
-    LATB = 0x00;
+    LATB = 0x03;
     TRISB = 0xF0;
     INTCON2bits.RBPU = 0;   /* Turn on weak pull-up */ 
-}
-
-void MODE_init(void)
-{
-    D_MODE1 = 0;
-    D_MODE2 = 0;
-    D_MODE3 = 0;
-    T_MODE1 = OUTPUT;
-    T_MODE2 = OUTPUT;
-    T_MODE3 = OUTPUT;
-}
-
-void SERVO_init(void)
-{
-    D_SERVO = 0;
-    T_SERVO = OUTPUT;
 }
 
 /********************************************************************/
@@ -76,31 +49,34 @@ void SERVO_init(void)
  * Overview:        Initialize all the needed hardware IO and timers
  ********************************************************************/
 void hardware_init(void) {
-    ADCON1 = 0x0F;      //set all AD to digital
+    
+    PORTA = 0x00;           // Initial PORTA
+    TRISA = OUTPUT;         // Define PORTA as input
+    //T_SCORE = INPUT;        // Make N/C pin input
+    ADCON1 = 0x0F;          // Turn off ADcon
+    CMCON = 0x07;           // Turn off Comparator
+    PORTC = 0x00;           // Initial PORTC
+    TRISC = OUTPUT;         // Define PORTC as output
+	INTCONbits.GIE = 1;     // Turn on global interrupt
     
 #if PWM_CHANNELS > 0
     PWM_init();
 #endif
     
-    SERVO_init();
-    
-    MODE_init();
-    
-    /* Initialise PORTB for detecting taps */
+    /* Initialise some pins of PORTB as input for detecting taps */
     TAP_init();
     
     /* Initalise PWM (Timer 2) and Sampler (Timer 0) for Audio */
     AUDIO_init();
     
-    /* Initialise haptic feedback */
-    HAPTIC_init();
+    /* Initialise haptic feedback (active low, make them high = off) */
+    FEEDBACK_init();
     
     /* Initialise SIPO chain */
     LEDS_init();
     
 	OpenTimer3(FALSE);
 }
-
 
 /********************************************************************
  * Function:        void timed_to_1ms(void)
@@ -122,7 +98,7 @@ unsigned char timed_to_1ms(void) {
     
 	PIR2bits.TMR3IF = 0;
     return 1;
-}	
+}
 
 /********************************************************************
  * Function:        void interrupt_handler(void)
@@ -139,6 +115,9 @@ void interrupt interrupt_handler(void)
 #endif
     
     AUDIO_ISR();
+    
+    INTCONbits.GIE = TRUE;
+    INTCONbits.PEIE = TRUE;
 }
 
 /********************************************************************/
@@ -158,14 +137,12 @@ static void OpenTimer3(unsigned char intEnable)
     TMR3L = 0xDF;   /* Then low, single 16-bit operation */
     
     T3CONbits.T3CKPS = 0b00;/* No postscaler */
-    T3CONbits.TMR3ON = 1;   /* Turn on  */
+    T3CONbits.TMR3ON = 1;   /* Turn on */
     T3CONbits.TMR3CS = 0;   /* Internal clock source  */
     T3CONbits.T3NSYNC = 1;  /* Do not synchronize */
     
-    PIE2bits.TMR3IE = intEnable & 0x01;
-    INTCONbits.GIE = (intEnable & 0x01) | INTCONbits.GIE;
-    INTCONbits.PEIE = (intEnable & 0x01) | INTCONbits.PEIE;
-    IPR2bits.TMR3IP = 0;
-    PIR2bits.TMR3IF = 0;      // Clear Timer1 overflow flag
+    PIE2bits.TMR3IE = FALSE;
+    IPR2bits.TMR3IP = TRUE;
+    PIR2bits.TMR3IF = FALSE;      // Clear Timer1 overflow flag
 }
 //EOF-------------------------------------------------------------------------

@@ -18,6 +18,7 @@ extern "C" {
 //  API PROTOTYPES
 //===----------------------------------------------------------------------===//
 
+void FEEDBACK_init(void);
 void FEEDBACK_giveFeedback(unsigned char player);
 
 //===----------------------------------------------------------------------===//
