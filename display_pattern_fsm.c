@@ -22,10 +22,12 @@ static enum {
     STATE_IDLE = 0,
     STATE_DISPLAY,
     STATE_DELAY,
+    STATE_WAIT,
     STATE_DONE
 } state;
 
 static bool display = FALSE; /* Trigger flag */
+static bool playing = FALSE; /**/ 
 
 static unsigned short timer = 0;
 static unsigned char patterns[MAX_PATTERNS] = {0};
@@ -68,6 +70,12 @@ void display_pattern(void)
     if (!display)
         display = TRUE;
     pattern_done = FALSE;
+    playing = FALSE;
+}
+
+void enable_tapping(void)
+{
+    playing = TRUE;
 }
 
 void display_pattern_fsm(void)
@@ -103,7 +111,7 @@ void display_pattern_fsm(void)
             if (index != round * 2) {
                 state = STATE_DELAY; /* Unconditional transition */
             } else {
-                state = STATE_DONE;
+                state = STATE_WAIT;
                 pattern_done = 1;
             }
             break;
@@ -114,14 +122,21 @@ void display_pattern_fsm(void)
             if (PATTERN_DELAY == timer)
                 state = STATE_DISPLAY;
             break;
+        case STATE_WAIT:
+            if (playing)
+                state = STATE_DONE;
+            else 
+                state = STATE_WAIT;
         case STATE_DONE:
             // *** outputs ***
             
+            
+            
             /* TODO: Check for taps, and compare if a player is correct or not */
-            if (p1_pressed == patterns[P1_right_counter]) {P1_correct; P1_right_counter++;}
-            if (p1_pressed != patterns[P1_right_counter]) P1_wrong;
-            if (p2_pressed == patterns[P2_right_counter]) {P2_correct; P2_right_counter++;}
-            if (p2_pressed != patterns[P2_right_counter]) P2_wrong;
+            if (p1_pressed == patterns[P1_right_counter]) {P1_correct = TRUE; P1_right_counter++;}
+            if (p1_pressed != patterns[P1_right_counter]) P1_wrong = TRUE;
+            if (p2_pressed == patterns[P2_right_counter]) {P2_correct = TRUE; P2_right_counter++;}
+            if (p2_pressed != patterns[P2_right_counter]) P2_wrong = TRUE;
             
             // *** transitions ***
             
