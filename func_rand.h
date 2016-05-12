@@ -13,8 +13,8 @@ extern "C" {
 #endif
     
 #include "config.h"
-
-void RAND_seed(unsigned char time);
+    
+void RAND_seed(unsigned short time);
 unsigned char RAND_gen(void);
 
 #ifdef	__cplusplus

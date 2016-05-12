@@ -52,8 +52,8 @@
 #define D_MODE1     LATCbits.LC7
 #define D_MODE2     LATCbits.LC6
 #define D_MODE3     LATCbits.LC1
-#define D_HAP_P1    PORTBbits.RB0
-#define D_HAP_P2    PORTBbits.RB1
+#define D_HAP_P1    PORTBbits.RB1
+#define D_HAP_P2    PORTBbits.RB0
 #define D_CTRL_P1   PORTBbits.RB3
 #define D_CTRL_P2   PORTBbits.RB2
 #define D_INDEX     PORTBbits.RB7
@@ -192,7 +192,7 @@ extern char p2_tapped;
 extern unsigned char P1_right_counter;
 extern unsigned char P2_right_counter;
 #define CORRECT (1)
-#define WRONG (-1)
+#define WRONG (2)
 
 //===----------------------------------------------------------------------===//
 //  HAPTIC FEEDBACK

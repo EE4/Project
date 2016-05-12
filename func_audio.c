@@ -158,8 +158,14 @@ void AUDIO_playSound(int to_play)
             sound = do_central;
             sound_length = DO_CENTRAL_LENGTH;
             break;
-        case SOUND_READY: /* Intentional fall-through */
-        case SOUND_SET: /* Intentional fall-through */
+        case SOUND_READY:
+            sound = ready;
+            sound_length = READY_LENGTH >> 1;
+            break;
+        case SOUND_SET:
+            sound = ready;
+            sound_length = READY_LENGTH >> 1;
+            break;
         case SOUND_GO: /* Intentional fall-through */
             sound = ready;
             sound_length = READY_LENGTH;

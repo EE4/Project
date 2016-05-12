@@ -22,6 +22,8 @@ static enum {
     STATE_IDLE = 0,
     STATE_DISPLAY,
     STATE_DELAY,
+    STATE_DISPLAY_OFF,
+    STATE_DELAY_OFF,
     STATE_WAIT,
     STATE_DONE
 } state;
@@ -73,7 +75,7 @@ void display_pattern(void)
     playing = FALSE;
 }
 
-void enable_tapping(void)
+void enable_checking(void)
 {
     playing = TRUE;
 }
@@ -86,6 +88,10 @@ void display_pattern_fsm(void)
             // *** outputs ***
             timer = 0;
             index = 0;
+            P1_right_counter = 0;
+            P2_right_counter = 0;
+            p1_tapped = NONE;
+            p2_tapped = NONE;
             // *** transitions ***
             if (TRUE == display)
                 state = STATE_DISPLAY;
@@ -93,26 +99,26 @@ void display_pattern_fsm(void)
         case STATE_DISPLAY:
             // *** outputs ***
             timer = 0;
+            display = FALSE;
             
-            /* Generate random pattern and store it */
-            patterns[index] = pattern_generate();
-            
-            /* Display same pattern for both players */
-            PATTERN_setPattern(PLAYER_1, patterns[index]);
-            PATTERN_setPattern(PLAYER_2, patterns[index]);
-            
-            /* Trigger update */
-            LEDS_update();
-            
-            /* Increment index for next pattern */
-            index++;
+            if (index < (round << 1)) {
+                /* Generate random pattern and store it */
+                patterns[index] = pattern_generate();
+
+                /* Display same pattern for both players */
+                PATTERN_setPattern(PLAYER_1, patterns[index]);
+                PATTERN_setPattern(PLAYER_2, patterns[index]);
+
+                /* Trigger update */
+                LEDS_update();
+            }
             
             // *** transitions ***
-            if (index < 10) {
+            if (index < (round << 1)) {
+                index++;
                 state = STATE_DELAY;
             } else {
                 state = STATE_WAIT;
-                pattern_done = 1;
             }
             break;
         case STATE_DELAY:
@@ -120,29 +126,81 @@ void display_pattern_fsm(void)
             timer ++;
             // *** transitions ***
             if (PATTERN_DELAY == timer)
+                state = STATE_DISPLAY_OFF;
+            break;
+        case STATE_DISPLAY_OFF:
+            // *** outputs ***
+            timer = 0;
+            
+            PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+            PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+            
+            /* Trigger update */
+            LEDS_update();
+            
+            state = STATE_DELAY_OFF;
+            break;
+        case STATE_DELAY_OFF:
+            // *** outputs ***
+            timer ++;
+            // *** transitions ***
+            if (PATTERN_DELAY == timer)
                 state = STATE_DISPLAY;
             break;
         case STATE_WAIT:
+            // *** outputs ***
+            pattern_done = 1;
+                
+            // *** transitions ***
             if (playing)
                 state = STATE_DONE;
             else 
                 state = STATE_WAIT;
         case STATE_DONE:
             // *** outputs ***
-            if (p1_pressed == patterns[P1_right_counter]) {p1_tapped = CORRECT; P1_right_counter++;}
-            else if (!p1_pressed) p1_tapped = NONE;
-            else p1_tapped = WRONG;
+            if (P1_right_counter < (round << 1)) {
+                if (p1_pressed) {
+                    if (p1_pressed == patterns[P1_right_counter]) {
+                        p1_tapped = CORRECT;
+                        P1_right_counter++;
+                    } else {
+                        p1_tapped = WRONG;
+                    }
+                } else {
+                    p1_tapped = NONE;
+                }
+            } else {
+                p1_tapped = NONE;
+            }
             
-            if (p2_pressed == patterns[P2_right_counter]) {p2_tapped = CORRECT; P2_right_counter++;}
-            else if (!p2_pressed) p2_pressed = NONE;
-            else p2_pressed = WRONG;
-            /* TODO: Check for taps, and compare if a player is correct or not */
-            
+            if (P2_right_counter < (round << 1)) {
+                if (p2_pressed) {
+                    if (p2_pressed == patterns[P2_right_counter]) {
+                        p2_tapped = CORRECT;
+                        P2_right_counter++;
+                    } else {
+                        p2_tapped = WRONG;
+                    }
+                } else {
+                    p2_tapped = NONE;
+                }
+            } else {
+                p2_tapped = NONE;
+            }
             
             // *** transitions ***
-            if (round_ended) {
-                display = FALSE;
+            if (display) {
+                timer = 0;
+                index = 0;
+                P1_right_counter = 0;
+                P2_right_counter = 0;
+                p1_tapped = NONE;
+                p2_tapped = NONE;
+                state = STATE_DISPLAY;
+            } else if (game_ended) {
                 state = STATE_IDLE;
+            } else {
+                state = STATE_DONE;
             }
             break;
         default:

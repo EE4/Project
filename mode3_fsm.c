@@ -84,9 +84,7 @@ void mode3_fsm(void){
             
             if (counter == 2000) {
                AUDIO_playSound(SOUND_READY);
-
-                
-                current_state = LIGHT_GREEN;
+               current_state = LIGHT_GREEN;
             }
             break;
         case LIGHT_GREEN:

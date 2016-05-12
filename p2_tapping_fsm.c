@@ -162,6 +162,7 @@ void p2_tapping_fsm(void)
             // *** outputs ***
                 p2_pressed = PINKY;
                 PATTERN_setPattern(PLAYER_2, PATTERN_PINKY);
+                LEDS_update();
             // *** transitions ***
                 state = P2_IDLE;    /* Unconditionally go back to IDLE */  
                 break;

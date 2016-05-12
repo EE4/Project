@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 static unsigned char seed = 0;
-static bool seeded = 0;
 
 //===----------------------------------------------------------------------===//
 //  PRIVATE FUNCTIONS
@@ -28,15 +27,12 @@ static unsigned char xorshift() {
 //  API FUNCTIONS
 //===----------------------------------------------------------------------===//
 
-void RAND_seed(unsigned char time)
+void RAND_seed(unsigned short time)
 {
-    /* If player 1 tapped any finger and generator isn't seeded yet */
-    if (p1_pressed && !seeded) {
+    /* If player 1 tapped any finger */
+    if (p1_pressed) {
         /* Seed generator */
-        seed = time;
-        
-        /* Only seed generator once */
-        seeded = TRUE;
+        seed = (unsigned char)((unsigned char)(time >> 3) ^ (unsigned char)time) | p1_pressed;
     }
 }
 

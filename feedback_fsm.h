@@ -20,6 +20,7 @@ extern "C" {
 
 void FEEDBACK_init(void);
 void FEEDBACK_giveFeedback(unsigned char player);
+void FEEDBACK_positiveFeedback(unsigned char player);
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC PROTOTYPES

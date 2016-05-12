@@ -14,7 +14,7 @@
 /** D E F I N E S ***************************************************/
 
 /** P R I V A T E   V A R I A B L E S *******************************/
-static unsigned char seed_time; /* Value to seed */
+static unsigned short seed_time; /* Value to seed */
 static unsigned long long time_ms;
 
 unsigned int counter;

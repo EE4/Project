@@ -104,17 +104,17 @@ static unsigned char LIVES_translate(unsigned char lives)
 static unsigned char LIVE_inv_translate(unsigned char lives)
 {
     /* Mask out state bits from live display storage */
-    unsigned char masked = lives & ~LIVES_MASK;
+    unsigned char masked = lives & STATE_MASK;
 
-    /* Inverse formatign of how leds are connected to SIPO */
-    unsigned char gauge_lives = (masked >> 7) | (masked << 1);
+    /* Inverse formating of how LEDs are connected to SIPO */
+    unsigned char gauge_lives = (masked << 7) | (masked >> 1);
 
     unsigned char lives_left = 0;
 
     /* Count while the value of the gauge lives is still true */
-    while (masked) {
+    while (gauge_lives) {
         /* Shift out one live and increment lives_left */
-        masked = masked >> 1;
+        gauge_lives = gauge_lives << 1;
         lives_left++;
     }
 
@@ -262,8 +262,7 @@ void LEDS_init(void)
 
 void LEDS_tick(void)
 {
-    D_SCORE = 1;   
-    
+    D_SCORE = 1;
     
     switch (state) {
         case PRE:

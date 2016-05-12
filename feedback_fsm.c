@@ -26,6 +26,8 @@ static enum {
 
 static unsigned short timer_p1;
 static unsigned short timer_p2;
+static unsigned short dur_p1;
+static unsigned short dur_p2;
 
 static bool feedback_p1;
 static bool feedback_p2;
@@ -44,8 +46,24 @@ void FEEDBACK_giveFeedback(unsigned char player)
 {
     if (PLAYER_1 == player) {
         feedback_p1 = TRUE;
+        dur_p1 = (short)FEEDBACK_DURATION;
     } else if (PLAYER_2 == player) {
         feedback_p2 = TRUE;
+        dur_p2 = (short)FEEDBACK_DURATION;
+        
+    } else {
+        /* Do nothing, shouldn't happen */
+    }
+}
+
+void FEEDBACK_positiveFeedback(unsigned char player) 
+{
+    if (PLAYER_1 == player) {
+        feedback_p1 = TRUE;
+        dur_p1 = ((short)FEEDBACK_DURATION) >> 1;
+    } else if (PLAYER_2 == player) {
+        feedback_p2 = TRUE;
+        dur_p2 = ((short)FEEDBACK_DURATION) >> 1;
     } else {
         /* Do nothing, shouldn't happen */
     }
@@ -60,6 +78,8 @@ void feedback_fsm_init(void)
     state = HAPTIC_IDLE;
     timer_p1 = 0;
     timer_p2 = 0;
+    dur_p1 = FEEDBACK_DURATION;
+    dur_p2 = FEEDBACK_DURATION;
 }
 
 void feedback_fsm(void)
@@ -99,7 +119,7 @@ void feedback_fsm(void)
             /* TRANSITION CONDITIONS */
             if (feedback_p2) {
                 state = HAPTIC_BOTH;
-            } else if (timer_p1 == FEEDBACK_DURATION) {
+            } else if (timer_p1 >= dur_p1) {
                 state = HAPTIC_IDLE;
             } else {
                 state = HAPTIC_P1;
@@ -120,7 +140,7 @@ void feedback_fsm(void)
             /* TRANSITION CONDITIONS */
             if (feedback_p1) {
                 state = HAPTIC_BOTH;
-            } else if (timer_p2 == FEEDBACK_DURATION) {
+            } else if (timer_p2 >= dur_p2) {
                 state = HAPTIC_IDLE;
             } else {
                 state = HAPTIC_P2;
@@ -140,14 +160,14 @@ void feedback_fsm(void)
             feedback_p2 = FALSE;
             
             /* TRANSITION CONDITIONS */
-            if (FEEDBACK_DURATION == timer_p1 && 
-                FEEDBACK_DURATION == timer_p2) {
+            if (dur_p1 <= timer_p1 && 
+                dur_p2 <= timer_p2) {
                 state = HAPTIC_IDLE;
-            } else if (FEEDBACK_DURATION == timer_p1 &&
-                       FEEDBACK_DURATION > timer_p2) {
+            } else if (dur_p1 <= timer_p1 &&
+                       dur_p2 > timer_p2) {
                 state = HAPTIC_P2;
-            } else if (FEEDBACK_DURATION == timer_p2 &&
-                       FEEDBACK_DURATION > timer_p1) {
+            } else if (dur_p2 <= timer_p2 &&
+                       dur_p1 > timer_p1) {
                 state = HAPTIC_P1;
             } else {
                 state = HAPTIC_BOTH;

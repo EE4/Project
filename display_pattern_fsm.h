@@ -21,7 +21,7 @@ extern "C" {
 void display_pattern_fsm_init(void);
 void display_pattern_fsm(void);
 void display_pattern(void);
-void enable_tapping(void);
+void enable_checking(void);
 
 #ifdef	__cplusplus
 }
