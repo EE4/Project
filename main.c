@@ -86,19 +86,22 @@ void main(void) {
  ********************************************************************/
 static void init(void) 
 {
-    hardware_init();
-    
     /* Lower level drivers initialisation */
     p1_tapping_fsm_init();
     p2_tapping_fsm_init();
     feedback_fsm_init();
     
+    /* Intermediate drivers */
+    display_pattern_fsm_init();
+    
+    /* Game level */
     general_fsm_init();
     
     mode1_fsm_init();
     mode3_fsm_init();
     
-    display_pattern_fsm_init();
+    /* Hardware */
+    hardware_init();
 }
 
 //EOF-------------------------------------------------------------------------

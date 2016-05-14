@@ -61,7 +61,7 @@ static void fsm_p1_postcondition(void)
     D_CTRL_P1 = 1;
     D_CTRL_P2 = 1;
     
-    /* Make player 2 control line output again  */
+    /* Make player 2 control line output again */
     T_CTRL_P2 = OUTPUT;
 }
 

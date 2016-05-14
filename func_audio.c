@@ -24,13 +24,15 @@
 #define C_SAMPLE        (((F_OSC / D_SAMPLE) / F_SAMPLE))   /* Overflow value for Sample CLK */
 #define P_SAMPLE        (256 - C_SAMPLE)                    /* Overflow after C_SAMPLE counts */
 
+#define NULL            ((void *)0)
+
 //===----------------------------------------------------------------------===//
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
-static long sample = 0;
 
 static long sound_length;
-static const unsigned char *sound;
+static const char *sound;
+static const char *sample;
 
 //===----------------------------------------------------------------------===//
 //  PUBLIC VARIABLES
@@ -112,7 +114,7 @@ void AUDIO_setupSampler(void)
     T0CONbits.TMR0ON = 1;
 }
 
-static void AUDIO_update_sample(const unsigned char a)
+static void AUDIO_update_sample(const char a)
 {
     CCPR1L = a >> 2;
     CCP1CONbits.DC1B1 = (a & 0x02) >> 1;
@@ -121,11 +123,13 @@ static void AUDIO_update_sample(const unsigned char a)
 
 static void AUDIO_tick(void)
 {
-    if (sample < sound_length) {
-        AUDIO_update_sample((const unsigned char)sound[sample++]);
+    if (((sample - sound) < sound_length)) {
+        AUDIO_update_sample(*(sample));
+        sound_done = 0;
+        ++sample;
     } else {
-        sound_done = 1;
         AUDIO_update_sample(0x80);
+        sound_done = 1;
     }
 }
 
@@ -148,74 +152,104 @@ void AUDIO_ISR(void)
 
 void AUDIO_playSound(int to_play)
 {
-    /* Set the sound buffer */
+    /*
+     *  ORDER OF EXECUTION IS IMPORTANT. DON'T CHANGE.
+     * 
+     *  The order of execution of this function is quite important in order
+     *  to prevent OOB access in the interrupt-routine. To achieve this
+     *  prevention, we make sure that if an interrupt of the sampler occurs
+     *  during this function, no sound-data is accessed by setting sound-pointer
+     *  to "null". 
+     */
+    
+    if (to_play) {
+        sound = NULL;
+        sound_length = 0;
+    }
+    
     switch (to_play) {
         case SOUND_SELECT:
+            sample = do_central;
             sound = do_central;
             sound_length = DO_CENTRAL_LENGTH;
             break;
         case SOUND_WON:
+            sample = do_central;
             sound = do_central;
             sound_length = DO_CENTRAL_LENGTH;
             break;
         case SOUND_READY:
+            sample = ready;
             sound = ready;
             sound_length = READY_LENGTH >> 1;
             break;
         case SOUND_SET:
+            sample = ready;
             sound = ready;
             sound_length = READY_LENGTH >> 1;
             break;
-        case SOUND_GO: /* Intentional fall-through */
+        case SOUND_GO:
+            sample = ready;
             sound = ready;
             sound_length = READY_LENGTH;
             break;
         default:
+            sample = NULL;
+            sound = NULL;
             sound_length = 0;
-            sound = 0;
     }
-    
-    /* Reset sample count */
-    sample = 0;
-    sound_done = 0;
 }
-
 
 void AUDIO_tap(unsigned char pattern)
 {
+    /*
+     *  ORDER OF EXECUTION IS IMPORTANT. DON'T CHANGE.
+     * 
+     *  The order of execution of this function is quite important in order
+     *  to prevent OOB access in the interrupt-routine. To achieve this
+     *  prevention, we make sure that if an interrupt of the sampler occurs
+     *  during this function, no sound-data is accessed by setting sound-pointer
+     *  to "null". 
+     */
+    
+    if (pattern) {
+        sound = NULL;
+        sound_length = 0;
+    }
+    
     switch (pattern) {
-        case NONE: /* intention */
+        case NONE:
             return;
         case INDEX:
+            sample = do_central;
             sound = do_central;
             sound_length = DO_CENTRAL_LENGTH;
             break;
         case MIDDLE:
+            sample = fa_central;
             sound = fa_central;
             sound_length = FA_CENTRAL_LENGTH;
             break;
         case RING:
+            sample = sol_central;
             sound = sol_central;
             sound_length = SOL_CENTRAL_LENGTH;
             break;
         case PINKY:
+            sample = do_second;
             sound = do_second;
             sound_length = DO_SECOND_LENGTH;
             break;
         default:
-            sound_length = 0;
-            sound = 0;
+            return;
     }
-    
-    /* Reset sample count */
-    sample = 0;
 }
-
 
 void AUDIO_init(void)
 {
     sound = 0;
     sample = 0;
+    sound_length = 0;
     AUDIO_setupPWM();
     AUDIO_setupSampler();
 }

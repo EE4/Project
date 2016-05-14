@@ -47,17 +47,19 @@ void general_fsm(void)
             // *** outputs ***
             timer = 0;
             
-            game_ended = FALSE;
+            game_ended = TRUE;
+            round = 0;
+            
             SCORE_setScore(0);
             AUDIO_playSound(SOUND_WON);
             PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
             PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
-            STATE_setState(PLAYER_1, STATE_GO);
-            STATE_setState(PLAYER_2, STATE_READY);
+            STATE_setState(PLAYER_1, STATE_READY);
+            STATE_setState(PLAYER_2, STATE_GO);
             LIVES_setLives(PLAYER_1, 5);
-            LIVES_setLives(PLAYER_2, 4);
-            MODE_setMode(MODE_ALL);
+            LIVES_setLives(PLAYER_2, 5);
             
+            /* Trigger update */
             LEDS_update();
             
             // *** transitions ***
@@ -84,7 +86,7 @@ void general_fsm(void)
                     state = PRE_MODE3;
                     break;
                 default:
-                    NOP();
+                    state = IDLE;
             }
             break;
         case PRE_MODE1:
@@ -120,6 +122,7 @@ void general_fsm(void)
            
             // *** transitions ***
             state = MODE3; /* Uncondtional transition */
+            break;
         case MODE3:
             // *** outputs ***
             

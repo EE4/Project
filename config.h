@@ -96,6 +96,7 @@ typedef unsigned char uint8_t;
 /* Possible players */
 #define PLAYER_1        (0u)
 #define PLAYER_2        (1u)
+#define PLAYER_BOTH     (2u)
 
 /* Possible patterns to display */
 #define PATTERN_NONE    (0u)
@@ -179,6 +180,9 @@ extern unsigned short PWM_duty[PWM_CHANNELS];
 //===----------------------------------------------------------------------===//
 
 #define MAX_PATTERNS (10u)
+
+/* Delay in ms between 2 successive patterns */
+#define PATTERN_DELAY (700)
 
 extern bool pattern_done;
 

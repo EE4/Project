@@ -176,9 +176,8 @@ static void SIPO_do_write_bit(char a, int index)
     /* Put bit at index on data pin */
     D_SERIAL_O = ((a >> index) & 0x01);
     
-    /* Give a rising edge to sample data-pin */
+    /* Clock pulse */
     D_SERIAL_CK = 1;
-    
     D_SERIAL_CK = 0;
 }
 
@@ -213,10 +212,8 @@ void LIVES_setLives(unsigned char player, unsigned char lives)
 {
     if (PLAYER_1 == player) {
         lives_p1 = (lives_p1 & LIVES_MASK) | LIVES_translate(lives);
-        //lives_p1 = 0xAA;
     } else if (PLAYER_2 == player) {
         lives_p2 = (lives_p2 & LIVES_MASK) | LIVES_translate(lives);
-        //lives_p2 = 0xFF;
     } else {
         /* Do nothing */
     }
@@ -329,14 +326,9 @@ void LEDS_tick(void)
             break;
         case POST:
 
-            /* Strobe high to put serial data on
+            /* Strobe pulse to put serial data on
              * parallel outputs */
             D_STROBE = 1;
-
-            /* Give the SIPO the time to sample strobe and
-             * to put data on outputs */
-
-            NOP();
 
             /* Strobe low */
             D_STROBE = 0;
@@ -344,6 +336,7 @@ void LEDS_tick(void)
             /* Output enable high */
             D_SERIAL_OE = 1;
     
+            /* Loop */
             state = PRE;
             
             break;
