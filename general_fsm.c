@@ -20,15 +20,21 @@ static enum {
     RESET = 0,
     IDLE,
     IDLE_BLINK,
-    MODE1,
-    MODE2,
-    MODE3,
+    WAIT,
     PRE_MODE1,
     PRE_MODE2,
     PRE_MODE3,
+    P1_WIN,
+    P1_WIN_OFF,
+    P2_WIN,
+    P2_WIN_OFF
 } state;
 
 static unsigned short timer = 0;
+static unsigned short counter = 0;
+static unsigned char blink_count = 0;
+
+unsigned char winner = 0;
 
 //===----------------------------------------------------------------------===//
 //  API FUNCTIONS
@@ -36,7 +42,10 @@ static unsigned short timer = 0;
     
 void general_fsm_init(void)
 {
+    blink_count = 0;
     state = RESET;
+    counter = 0;
+    winner = 0;
     timer = 0;
 }
 
@@ -48,15 +57,18 @@ void general_fsm(void)
             timer = 0;
             
             game_ended = TRUE;
+            blink_count = 0;
+            winner = NONE;
+            counter = 0;
             round = 0;
             
-            SCORE_setScore(0);
             PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
             PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
             STATE_setState(PLAYER_1, STATE_NONE);
             STATE_setState(PLAYER_2, STATE_NONE);
             LIVES_setLives(PLAYER_1, 5);
             LIVES_setLives(PLAYER_2, 5);
+            SCORE_setScore(0);
             
             /* Trigger update */
             LEDS_update();
@@ -78,8 +90,7 @@ void general_fsm(void)
                     state = PRE_MODE1;
                     break;
                 case MIDDLE:
-                    /* TODO: Update to MODE2 */
-                    state = IDLE;
+                    state = PRE_MODE2;
                     break;
                 case RING:
                     state = PRE_MODE3;
@@ -93,26 +104,14 @@ void general_fsm(void)
             MODE_setMode(1);
             mode1_fsm_play();
             // *** transitions ***
-            state = MODE1;
-            break;
-        case MODE1:
-            // *** outputs ***
-            
-            // *** transitions ***
-            if (game_ended)
-                state = RESET;
+            state = WAIT;
             break;
         case PRE_MODE2:
             // *** outputs ***
-            
+            MODE_setMode(2);
+            mode2_fsm_play();
             // *** transitions ***
-            break;
-        case MODE2:
-            // *** outputs ***
-            
-            // *** transitions ***
-            if (game_ended)
-                state = RESET;
+            state = WAIT;
             break;
         case PRE_MODE3:
             // *** outputs ***
@@ -120,14 +119,120 @@ void general_fsm(void)
             mode3_fsm_play();
            
             // *** transitions ***
-            state = MODE3; /* Uncondtional transition */
+            state = WAIT; /* Unconditional transition */
             break;
-        case MODE3:
+        case WAIT:
             // *** outputs ***
+            // *** transitions ***
+            if (game_ended) {
+                if (PLAYER_1 == winner) {
+                    state = P1_WIN;
+                } else if (PLAYER_2 == winner) {
+                    state = P2_WIN;
+                } else {
+                    state = RESET;
+                }
+            }
+            break;
+        case P1_WIN:
+            // *** outputs ***
+            if (!counter) {
+                if (!blink_count)
+                    AUDIO_playSound(SOUND_WON);
+                /* Turn off loser's LEDs */
+                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+                STATE_setState(PLAYER_2, STATE_NONE);
+                LIVES_setLives(PLAYER_2, 0);
+                
+                /* Turn on winner's LEDs */
+                PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
+                STATE_setState(PLAYER_1, STATE_ALL);
+                LIVES_setLives(PLAYER_1, 5);
+                
+                LEDS_update();
+            }
+
+            ++counter;
             
             // *** transitions ***
-            if (game_ended)
+            if (WIN_BLINK_TIME == counter) {
+                state = P1_WIN_OFF;
+            } else {
+                state = P1_WIN;
+            }
+            break;
+        case P1_WIN_OFF:
+            
+            // *** outputs ***
+            if (WIN_BLINK_TIME == counter) {
+                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+                LEDS_update();
+            }
+            
+            --counter;
+            
+            // *** transitions ***
+            if (blink_count < 3) {
+                if (!counter) {
+                    state = P1_WIN;
+                    ++blink_count;
+                } else {
+                    state = P1_WIN_OFF; 
+                }
+            } else {
                 state = RESET;
+            }
+            
+            break;
+        case P2_WIN:
+            
+            // *** outputs ***
+            if (!counter) {
+                if (!blink_count)
+                    AUDIO_playSound(SOUND_WON);
+                /* Turn off loser's LEDs */
+                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+                STATE_setState(PLAYER_1, STATE_NONE);
+                LIVES_setLives(PLAYER_1, 0);
+                
+                /* Turn on winner's LEDs */
+                PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
+                STATE_setState(PLAYER_2, STATE_ALL);
+                LIVES_setLives(PLAYER_2, 5);
+                
+                LEDS_update();
+            }
+
+            ++counter;
+            
+            // *** transitions ***
+            if (WIN_BLINK_TIME == counter) {
+                state = P2_WIN_OFF;
+            } else {
+                state = P2_WIN;
+            }
+            break;
+        case P2_WIN_OFF:
+            
+            // *** outputs ***
+            if (WIN_BLINK_TIME == counter) {
+                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+                LEDS_update();
+            }
+            
+            --counter;
+            
+            // *** transitions ***
+            if (blink_count < 3) {
+                if (!counter) {
+                    state = P2_WIN;
+                    ++blink_count;
+                } else {
+                    state = P2_WIN_OFF; 
+                }
+            } else {
+                state = RESET;
+            }
             break;
         default:
             break;

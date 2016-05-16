@@ -15,7 +15,6 @@
 /** D E F I N E S ***************************************************/
 #define PUSHED 0
 
-
 //===----------------------------------------------------------------------===//
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
@@ -24,8 +23,6 @@ static unsigned char blink_count = 0;
 static unsigned char patterns = 0;
 static unsigned short counter = 0;
 static unsigned short timer = 0;
-static unsigned char winner;
-static unsigned char loser;
 static bool running;
 
 static enum {
@@ -145,7 +142,7 @@ void mode1_fsm(void) {
 
                 LEDS_update();
             }
-
+            
             counter--;
             
             // *** transitions ***
@@ -281,102 +278,7 @@ void mode1_fsm(void) {
             }
             
             break;
-        case P1_WIN:
-            // *** outputs ***
-            if (!counter) {
-                /* Turn off loser's LEDs */
-                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
-                STATE_setState(PLAYER_2, STATE_NONE);
-                LIVES_setLives(PLAYER_2, 0);
-                
-                /* Turn on winner's LEDs */
-                PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
-                STATE_setState(PLAYER_1, STATE_ALL);
-                LIVES_setLives(PLAYER_1, 5);
-                
-                LEDS_update();
-            }
-
-            ++counter;
-            
-            // *** transitions ***
-            if (WIN_BLINK_TIME == counter) {
-                current_state = P1_WIN_OFF;
-            } else {
-                current_state = P1_WIN;
-            }
-            break;
-        case P1_WIN_OFF:
-            
-            // *** outputs ***
-            if (WIN_BLINK_TIME == counter) {
-                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
-                LEDS_update();
-            }
-            
-            --counter;
-            
-            // *** transitions ***
-            if (blink_count < 3) {
-                if (!counter) {
-                    current_state = P1_WIN;
-                    ++blink_count;
-                } else {
-                    current_state = P1_WIN_OFF; 
-                }
-            } else {
-                current_state = EXIT_MODE1;
-            }
-            
-            break;
-        case P2_WIN:
-            
-            // *** outputs ***
-            if (!counter) {
-                /* Turn off loser's LEDs */
-                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
-                STATE_setState(PLAYER_1, STATE_NONE);
-                LIVES_setLives(PLAYER_1, 0);
-                
-                /* Turn on winner's LEDs */
-                PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
-                STATE_setState(PLAYER_2, STATE_ALL);
-                LIVES_setLives(PLAYER_2, 5);
-                
-                LEDS_update();
-            }
-
-            ++counter;
-            
-            // *** transitions ***
-            if (WIN_BLINK_TIME == counter) {
-                current_state = P2_WIN_OFF;
-            } else {
-                current_state = P2_WIN;
-            }
-            break;
-        case P2_WIN_OFF:
-            
-            // *** outputs ***
-            if (WIN_BLINK_TIME == counter) {
-                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
-                LEDS_update();
-            }
-            
-            --counter;
-            
-            // *** transitions ***
-            if (blink_count < 3) {
-                if (!counter) {
-                    current_state = P2_WIN;
-                    ++blink_count;
-                } else {
-                    current_state = P2_WIN_OFF; 
-                }
-            } else {
-                current_state = EXIT_MODE1;
-            }
-            break;
+        
         case ROUND_CHECK:
             round_ended = TRUE;
             
@@ -396,13 +298,14 @@ void mode1_fsm(void) {
                 current_state = DISPLAY_ON;
             } else {
                 if (SCORE_getScore() < 0 || !LIVES_getLives(PLAYER_1)) {
-                    AUDIO_playSound(SOUND_WON);
-                    current_state = P2_WIN;
+                    winner = PLAYER_2;
                 } else if (SCORE_getScore() > 0 || !LIVES_getLives(PLAYER_2)) {
-                    AUDIO_playSound(SOUND_WON);
-                    current_state = P1_WIN;
-                } else
-                    current_state = EXIT_MODE1;
+                    winner = PLAYER_1;
+                } else {
+                    winner = NONE;
+                }
+                
+                current_state = EXIT_MODE1;
             }
             break;
         case EXIT_MODE1 :

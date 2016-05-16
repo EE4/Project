@@ -50,6 +50,7 @@ void main(void) {
         /* Main game FSM */
         general_fsm();
         
+        /* Lower level FSM's */
         p1_tapping_fsm();
         p2_tapping_fsm();
         
@@ -59,13 +60,15 @@ void main(void) {
         
         LEDS_tick();
         
-        mode1_fsm();
-        mode3_fsm();
-        
         AUDIO_tap(p1_pressed);
         AUDIO_tap(p2_pressed);
         
         AUDIO_fsm();
+        
+        /* Game mode FSM's */
+        mode1_fsm();
+        mode2_fsm();
+        mode3_fsm();
         
         if (time_ms++ < 2) {
             FEEDBACK_giveFeedback(PLAYER_1);
@@ -100,6 +103,7 @@ static void init(void)
     general_fsm_init();
     
     mode1_fsm_init();
+    mode2_fsm_init();
     mode3_fsm_init();
     
     /* Hardware */

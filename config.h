@@ -29,7 +29,7 @@
 /** GAME LEVEL LOGIC **/
 #include "general_fsm.h"
 #include "mode_1.h"
-//#include "mode2_fsm.h"
+#include "mode_2.h"
 #include "mode3_fsm.h"
 
 //===----------------------------------------------------------------------===//
@@ -151,6 +151,8 @@ extern unsigned char round;
 extern bool game_ended;
 extern bool game_started;
 extern bool round_ended;
+extern unsigned char winner;
+
 //===----------------------------------------------------------------------===//
 //  RANDOM NUMBER GENERATOR
 //===----------------------------------------------------------------------===//

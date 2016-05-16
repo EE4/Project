@@ -18,6 +18,7 @@ extern "C" {
 //  PUBLIC FUNCTIONS
 //===----------------------------------------------------------------------===//
 
+unsigned char pattern_generate(void);
 void display_pattern_fsm_init(void);
 void display_pattern_fsm(void);
 void display_pattern(void);

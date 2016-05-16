@@ -43,19 +43,7 @@ static void fsm_p1_precondition(void)
      *          v +----+     +----+     +----+     +----+
      *     <<<<<< |    |    \     |    \     |    \     |
      * '0' -------+----|-----+----|-----+----|-----+----|
-     *         _|      |          |          |          |
-     *        | |      |          |          |          |
-     *        |_|      |          |          |          |
-     * ---------|------+          |          |          |
-     *                            |          |          |
-     *                            |          |          |
-     *               -------------+          |          |
-     *                                       |          |
-     *                                       |          |
-     *               ------------------------+          |
-     *                                                  |
-     *                                                  |
-     *               -----------------------------------+
+     * 
      * To overcome this problem we configure the control line of 
      * the active low control line as an input, so it doesn't 
      * matter. The value of the control line is inherentely lost
@@ -97,8 +85,8 @@ static unsigned char fsm_p1_sample(void)
 static void display_tap(unsigned char tap) 
 {
     if (display) {
-        p1_pressed = tap;
         PATTERN_setPattern(PLAYER_1, tap);
+        p1_pressed = tap;
         LEDS_update();
     }
 }
