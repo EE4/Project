@@ -51,11 +51,10 @@ void general_fsm(void)
             round = 0;
             
             SCORE_setScore(0);
-            AUDIO_playSound(SOUND_WON);
             PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
             PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
-            STATE_setState(PLAYER_1, STATE_READY);
-            STATE_setState(PLAYER_2, STATE_GO);
+            STATE_setState(PLAYER_1, STATE_NONE);
+            STATE_setState(PLAYER_2, STATE_NONE);
             LIVES_setLives(PLAYER_1, 5);
             LIVES_setLives(PLAYER_2, 5);
             

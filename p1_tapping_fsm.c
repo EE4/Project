@@ -23,6 +23,7 @@
 /** P R I V A T E   V A R I A B L E S *******************************/
 static unsigned char p1_sample_due = SAMPLE_PERIOD;
 static unsigned char state = P1_IDLE;
+static bool display = FALSE;
 
 /** P U B L I C   V A R I A B L E S *********************************/
 unsigned char p1_pressed = 0;
@@ -42,7 +43,19 @@ static void fsm_p1_precondition(void)
      *          v +----+     +----+     +----+     +----+
      *     <<<<<< |    |    \     |    \     |    \     |
      * '0' -------+----|-----+----|-----+----|-----+----|
-     *
+     *         _|      |          |          |          |
+     *        | |      |          |          |          |
+     *        |_|      |          |          |          |
+     * ---------|------+          |          |          |
+     *                            |          |          |
+     *                            |          |          |
+     *               -------------+          |          |
+     *                                       |          |
+     *                                       |          |
+     *               ------------------------+          |
+     *                                                  |
+     *                                                  |
+     *               -----------------------------------+
      * To overcome this problem we configure the control line of 
      * the active low control line as an input, so it doesn't 
      * matter. The value of the control line is inherentely lost
@@ -81,15 +94,30 @@ static unsigned char fsm_p1_sample(void)
     return sample;
 }
 
+static void display_tap(unsigned char tap) 
+{
+    if (display) {
+        p1_pressed = tap;
+        PATTERN_setPattern(PLAYER_1, tap);
+        LEDS_update();
+    }
+}
+
+/********************************************************************/
+/** P U B L I C   D E C L A R A T I O N S ***************************/
 void p1_tapping_fsm_init(void)
 {
     state = P1_IDLE;
     p1_sample_due = SAMPLE_PERIOD;
     p1_pressed = 0;
+    display = TRUE;
 }
 
-/********************************************************************/
-/** P U B L I C   D E C L A R A T I O N S ***************************/
+void p1_tap_display_enable(int enable) 
+{
+    display = (bool)enable;
+}
+
 void p1_tapping_fsm(void)
 {
     if (!(--p1_sample_due)) { /* Only execute this FSM every 20ms */
@@ -134,33 +162,25 @@ void p1_tapping_fsm(void)
                 break;
             case P1_F1_RELEASED:
             // *** outputs ***
-                p1_pressed = INDEX;
-                PATTERN_setPattern(PLAYER_1, PATTERN_INDEX);
-                LEDS_update();
+                display_tap(PATTERN_INDEX);
             // *** transitions ***
                 state = P1_IDLE;    /* Unconditionally go back to IDLE */  
                 break;
             case P1_F2_RELEASED:
             // *** outputs ***
-                p1_pressed = MIDDLE;
-                PATTERN_setPattern(PLAYER_1, PATTERN_MIDDLE);
-                LEDS_update();
+                display_tap(PATTERN_MIDDLE);
             // *** transitions ***
                 state = P1_IDLE;    /* Unconditionally go back to IDLE */  
                 break;
             case P1_F3_RELEASED:
             // *** outputs ***
-                p1_pressed = RING;
-                PATTERN_setPattern(PLAYER_1, PATTERN_RING);
-                LEDS_update();
+                display_tap(PATTERN_RING);
             // *** transitions ***
                 state = P1_IDLE;    /* Unconditionally go back to IDLE */  
                 break;
             case P1_F4_RELEASED:
             // *** outputs ***
-                p1_pressed = PINKY;
-                PATTERN_setPattern(PLAYER_1, PATTERN_PINKY);
-                LEDS_update();
+                display_tap(PATTERN_PINKY);
             // *** transitions ***
                 state = P1_IDLE;    /* Unconditionally go back to IDLE */  
                 break;

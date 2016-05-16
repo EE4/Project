@@ -39,6 +39,14 @@ void TAP_init(void)
     INTCON2bits.RBPU = 0;   /* Turn on weak pull-up */ 
 }
 
+
+void tap_feedback_enable(int enable)
+{
+    AUDIO_tap_enable(enable);
+    p1_tap_display_enable(enable);
+    p2_tap_display_enable(enable);
+}
+
 /********************************************************************/
 /** P U B L I C   D E C L A R A T I O N S ***************************/
 /********************************************************************

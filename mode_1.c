@@ -45,6 +45,10 @@ static enum {
     P1_WRONG_P2_NOTHING,
     P1_NOTHING_P2_CORRECT,
     P1_NOTHING_P2_WRONG,
+    P1_WIN,
+    P1_WIN_OFF,
+    P2_WIN,
+    P2_WIN_OFF,
     WIN_STATE,
     LOSE_STATE,
     ROUND_CHECK,
@@ -249,285 +253,166 @@ void mode1_fsm(void) {
                 current_state = ROUND_CHECK;
             } else {
                 
-                if (correct(p1_tapped) && none(p2_tapped)) {
-                    current_state = P1_CORRECT_P2_NOTHING; // 1
-                } else if (wrong(p1_tapped) && none(p2_tapped)) {
-                    current_state = P1_WRONG_P2_NOTHING; // 2
-                } else if (none(p1_tapped) && correct(p2_tapped)) {
-                    current_state = P1_NOTHING_P2_CORRECT; // 3
-                } else if (none(p1_tapped) && wrong(p2_tapped)) {
-                    current_state = P1_NOTHING_P2_WRONG; // 4
-                } else if (correct(p1_tapped) && wrong(p2_tapped)) {
-                    current_state = P1_CORRECT_P2_WRONG; // 5
-                } else if (wrong(p1_tapped) && correct(p2_tapped)) {
-                    current_state = P1_WRONG_P2_CORRECT; // 6
-                } else if (correct(p1_tapped) && correct(p2_tapped)) {
-                    current_state = BOTH_CORRECT; // 7
-                } else if (wrong(p1_tapped) && wrong(p2_tapped)) {
-                    current_state = BOTH_WRONG; // 8
-                } else {
-                    current_state = PLAY;
+                if (wrong(p1_tapped)) {
+                    FEEDBACK_giveFeedback(PLAYER_1);
+                    LIVES_setLives(PLAYER_1, LIVES_getLives(PLAYER_1) - 1);
+                    
+                    if (!LIVES_getLives(PLAYER_1))
+                        current_state = ROUND_CHECK;
+                } else if (correct(p1_tapped)) {
+                    FEEDBACK_positiveFeedback(PLAYER_1);
+                    
+                    if (P1_right_counter == patterns)
+                        current_state = ROUND_CHECK;
                 }
                 
+                if (wrong(p2_tapped)) {
+                    FEEDBACK_giveFeedback(PLAYER_2);
+                    LIVES_setLives(PLAYER_2, LIVES_getLives(PLAYER_2) - 1);
+                    
+                    if (!LIVES_getLives(PLAYER_2))
+                        current_state = ROUND_CHECK;
+                } else if (correct(p2_tapped)) {
+                    FEEDBACK_positiveFeedback(PLAYER_2);
+                    
+                    if (P2_right_counter == patterns)
+                        current_state = ROUND_CHECK;
+                }
             }
             
             break;
-        case P1_CORRECT_P2_NOTHING:
-            //=====//
-            //  1  //
-            //=====//
-            
+        case P1_WIN:
             // *** outputs ***
-            FEEDBACK_positiveFeedback(PLAYER_1);
+            if (!counter) {
+                /* Turn off loser's LEDs */
+                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+                STATE_setState(PLAYER_2, STATE_NONE);
+                LIVES_setLives(PLAYER_2, 0);
+                
+                /* Turn on winner's LEDs */
+                PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
+                STATE_setState(PLAYER_1, STATE_ALL);
+                LIVES_setLives(PLAYER_1, 5);
+                
+                LEDS_update();
+            }
+
+            ++counter;
             
             // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (P1_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_1;
+            if (WIN_BLINK_TIME == counter) {
+                current_state = P1_WIN_OFF;
             } else {
-                current_state = PLAY;
+                current_state = P1_WIN;
             }
-            
             break;
-        case P1_WRONG_P2_NOTHING :
-            //=====//
-            //  2  //
-            //=====//
+        case P1_WIN_OFF:
             
             // *** outputs ***
-            FEEDBACK_giveFeedback(PLAYER_1);
-            LIVES_setLives(PLAYER_1, LIVES_getLives(PLAYER_1) - 1);
-            LEDS_update();
+            if (WIN_BLINK_TIME == counter) {
+                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+                LEDS_update();
+            }
+            
+            --counter;
             
             // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (LIVES_getLives(PLAYER_1) == 0) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_1; 
+            if (blink_count < 3) {
+                if (!counter) {
+                    current_state = P1_WIN;
+                    ++blink_count;
+                } else {
+                    current_state = P1_WIN_OFF; 
+                }
             } else {
-                current_state = PLAY;
+                current_state = EXIT_MODE1;
             }
             
             break;
-        case BOTH_CORRECT:
-            //=====//
-            //  3  //
-            //=====//
+        case P2_WIN:
             
             // *** outputs ***
-            FEEDBACK_positiveFeedback(PLAYER_BOTH);
+            if (!counter) {
+                /* Turn off loser's LEDs */
+                PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+                STATE_setState(PLAYER_1, STATE_NONE);
+                LIVES_setLives(PLAYER_1, 0);
+                
+                /* Turn on winner's LEDs */
+                PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
+                STATE_setState(PLAYER_2, STATE_ALL);
+                LIVES_setLives(PLAYER_2, 5);
+                
+                LEDS_update();
+            }
+
+            ++counter;
             
             // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (P1_right_counter == patterns && P2_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = NONE;
-            } else if (P1_right_counter == patterns && P2_right_counter != patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_1;
-            } else if (P1_right_counter != patterns && P2_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_2;
+            if (WIN_BLINK_TIME == counter) {
+                current_state = P2_WIN_OFF;
             } else {
-                current_state = PLAY;
+                current_state = P2_WIN;
             }
-            
             break;
-        case P1_CORRECT_P2_WRONG:
-            //=====//
-            //  4  //
-            //=====//
+        case P2_WIN_OFF:
             
             // *** outputs ***
-            FEEDBACK_positiveFeedback(PLAYER_1);
-            FEEDBACK_giveFeedback(PLAYER_2);
-            LIVES_setLives(PLAYER_2,LIVES_getLives(PLAYER_2)-1);
-            LEDS_update();
+            if (WIN_BLINK_TIME == counter) {
+                PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+                LEDS_update();
+            }
+            
+            --counter;
             
             // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (P1_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_1;
-            } else if (LIVES_getLives(PLAYER_2) == 0) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_2; 
-            } else { 
-                current_state = PLAY;
-            }
-            
-            break;
-        case P1_WRONG_P2_CORRECT:
-            //=====//
-            //  5  //
-            //=====//
-            
-            // *** outputs ***
-            FEEDBACK_giveFeedback(PLAYER_1);
-            LIVES_setLives(PLAYER_1,LIVES_getLives(PLAYER_1)-1);
-            LEDS_update();
-            
-            // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (P2_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_2;
-            } else if (!LIVES_getLives(PLAYER_1)) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_1; 
-            } else { 
-                current_state = PLAY;
-            }
-            
-            break;
-        case BOTH_WRONG :
-            //=====//
-            //  6  //
-            //=====//
-            
-            // *** outputs ***
-            FEEDBACK_giveFeedback(PLAYER_1);
-            FEEDBACK_giveFeedback(PLAYER_2);
-            
-            LIVES_setLives(PLAYER_1,LIVES_getLives(PLAYER_1)-1);
-            LIVES_setLives(PLAYER_2,LIVES_getLives(PLAYER_2)-1);
-            
-            LEDS_update();
-            
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (!LIVES_getLives(PLAYER_2) && !LIVES_getLives(PLAYER_1)) {
-                current_state = LOSE_STATE;
-                loser = NONE; 
-            } else if (LIVES_getLives(PLAYER_2) == 0 && LIVES_getLives(PLAYER_1)) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_2;
-            } else if (LIVES_getLives(PLAYER_1) == 0 && LIVES_getLives(PLAYER_1)) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_1;
+            if (blink_count < 3) {
+                if (!counter) {
+                    current_state = P2_WIN;
+                    ++blink_count;
+                } else {
+                    current_state = P2_WIN_OFF; 
+                }
             } else {
-                current_state = PLAY;
+                current_state = EXIT_MODE1;
             }
-            
-            break;
-        case P1_NOTHING_P2_CORRECT:
-            //=====//
-            //  7  //
-            //=====//
-            
-            // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (P2_right_counter == patterns) {
-                current_state = WIN_STATE;
-                winner = PLAYER_2;
-            } else {
-                current_state = PLAY;
-            }
-            
-            break;
-        case P1_NOTHING_P2_WRONG :
-            //=====//
-            //  8  //
-            //=====//
-            
-            // *** outputs ***
-            FEEDBACK_giveFeedback(PLAYER_2);
-            LIVES_setLives(PLAYER_2,LIVES_getLives(PLAYER_2)-1);
-            LEDS_update();
-            
-            // *** transitions ***
-            if (++timer >= 30000) {
-                current_state = ROUND_CHECK;
-            } else if (LIVES_getLives(PLAYER_2) == 0) {
-                current_state = LOSE_STATE;
-                loser = PLAYER_2;
-            } else {
-                current_state = PLAY;
-            }
-            
-            break;
-        case WIN_STATE :
-            if (NONE == winner) { 
-                PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
-                STATE_setState(PLAYER_1,STATE_ALL);
-                LIVES_setLives(PLAYER_1,5);
-                PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
-                STATE_setState(PLAYER_2,STATE_ALL);
-                LIVES_setLives(PLAYER_2,5);}
-            if (PLAYER_1 == winner) {
-                SCORE_updateScore(+2); 
-                PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
-                STATE_setState(PLAYER_1,STATE_ALL);
-                LIVES_setLives(PLAYER_1,5);
-                PATTERN_setPattern(PLAYER_2,PATTERN_NONE); 
-                STATE_setState(PLAYER_2,STATE_NONE);
-                LIVES_setLives(PLAYER_2,0);}
-            if (PLAYER_2 == winner) {
-                SCORE_updateScore(-2); 
-                PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
-                STATE_setState(PLAYER_2,STATE_ALL);
-                LIVES_setLives(PLAYER_2,5);
-                PATTERN_setPattern(PLAYER_1,PATTERN_NONE); 
-                STATE_setState(PLAYER_1,STATE_NONE);
-                LIVES_setLives(PLAYER_1,0);}
-            LEDS_update();
-            AUDIO_playSound(SOUND_WON);
-            current_state = ROUND_CHECK;
-            
-            break;
-        case LOSE_STATE :
-            if (NONE == loser){
-                PATTERN_setPattern(PLAYER_1,PATTERN_NONE); 
-                STATE_setState(PLAYER_1,STATE_NONE);
-                LIVES_setLives(PLAYER_1,0);
-                PATTERN_setPattern(PLAYER_2,PATTERN_NONE); 
-                STATE_setState(PLAYER_2,STATE_NONE);
-                LIVES_setLives(PLAYER_2,0);}
-            if (PLAYER_1 == loser){
-                SCORE_updateScore(-2);
-                PATTERN_setPattern(PLAYER_2,PATTERN_ALL); 
-                STATE_setState(PLAYER_2,STATE_ALL);
-                LIVES_setLives(PLAYER_2,5);
-                PATTERN_setPattern(PLAYER_1,PATTERN_NONE); 
-                STATE_setState(PLAYER_1,STATE_NONE);
-                LIVES_setLives(PLAYER_1,0);}
-            if (PLAYER_2 == loser){
-                SCORE_updateScore(+2); 
-                PATTERN_setPattern(PLAYER_1,PATTERN_ALL); 
-                STATE_setState(PLAYER_1,STATE_ALL);
-                LIVES_setLives(PLAYER_1,5);
-                PATTERN_setPattern(PLAYER_2,PATTERN_NONE); 
-                STATE_setState(PLAYER_2,STATE_NONE);
-                LIVES_setLives(PLAYER_2,0);}
-            LEDS_update();
-            AUDIO_playSound(SOUND_LOST);
-            current_state = ROUND_CHECK;
-            
             break;
         case ROUND_CHECK:
             round_ended = TRUE;
             
-            /* Reset every counter for*/
             blink_count = 0;
             counter = 0;
             timer = 0;
             
-            if (round < 5)
+            if (round < 5) {
+                if (P1_right_counter == patterns)
+                    SCORE_updateScore(2);
+                if (P2_right_counter == patterns)
+                    SCORE_updateScore(-2);
+                if (!LIVES_getLives(PLAYER_1))    
+                    SCORE_updateScore(-2);
+                if (!LIVES_getLives(PLAYER_2))
+                    SCORE_updateScore(2);
                 current_state = DISPLAY_ON;
-            else
-                current_state = EXIT_MODE1;
-            
+            } else {
+                if (SCORE_getScore() < 0 || !LIVES_getLives(PLAYER_1)) {
+                    AUDIO_playSound(SOUND_WON);
+                    current_state = P2_WIN;
+                } else if (SCORE_getScore() > 0 || !LIVES_getLives(PLAYER_2)) {
+                    AUDIO_playSound(SOUND_WON);
+                    current_state = P1_WIN;
+                } else
+                    current_state = EXIT_MODE1;
+            }
             break;
         case EXIT_MODE1 :
+            
             game_ended = TRUE;
             running = FALSE;
+            
+            blink_count = 0;
+            counter = 0;
+            timer = 0;
             
             break;
         default:

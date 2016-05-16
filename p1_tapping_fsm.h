@@ -17,7 +17,8 @@ extern "C" {
 //===----------------------------------------------------------------------===//
 //  PUBLIC PROTOTYPES
 //===----------------------------------------------------------------------===//
-
+    
+void p1_tap_display_enable(int enable);
 void p1_tapping_fsm_init(void);
 void p1_tapping_fsm(void);
 

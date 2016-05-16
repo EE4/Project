@@ -11,8 +11,6 @@
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
 
-#define WIN_BLINK_TIME  (400)
-
 static int blink_count;
 static int counter;
 static bool running;
@@ -55,7 +53,6 @@ void mode3_fsm(void){
         case IDLE:
             if (running) {
                 // *** outputs ***
-                AUDIO_playSound(SOUND_READY);
                 blink_count = 0;
                 
                 // *** transitions ***
@@ -66,22 +63,24 @@ void mode3_fsm(void){
             break;
         case LIGHT_RED:
             if (0 == counter) {
+                AUDIO_playSound(SOUND_READY);
                 STATE_setState(PLAYER_1, STATE_READY);
                 STATE_setState(PLAYER_2, STATE_READY);
 
                 LEDS_update();
             }
+            
+            tap_feedback_enable(FALSE);
 
             counter++;
             
             if (counter == 1000) {
-                
-                AUDIO_playSound(SOUND_READY);
                 current_state = LIGHT_YELLOW;
             }
             break;
         case LIGHT_YELLOW:
             if (1000 == counter) {
+                AUDIO_playSound(SOUND_SET);
                 STATE_setState(PLAYER_1, STATE_SET);
                 STATE_setState(PLAYER_2, STATE_SET);
 
@@ -91,21 +90,24 @@ void mode3_fsm(void){
             counter++;
             
             if (counter == 2000) {
-               AUDIO_playSound(SOUND_READY);
                current_state = LIGHT_GREEN;
             }
             break;
         case LIGHT_GREEN:
-            if (2000 == counter) {
-                STATE_setState(PLAYER_1, STATE_GO);
-                STATE_setState(PLAYER_2, STATE_GO);
-
-                LEDS_update();
-            }
+            
+            // *** OUTPUTS ***
             counter = 0;
+            AUDIO_playSound(SOUND_GO);
+            STATE_setState(PLAYER_1, STATE_GO);
+            STATE_setState(PLAYER_2, STATE_GO);
+
+            LEDS_update();
+            
+            // *** TRANSITIONS ***
             current_state = PLAY;
             break;
         case PLAY:
+            tap_feedback_enable(TRUE);
             counter++;
             
             if (p1_pressed && !p2_pressed) {
@@ -146,9 +148,19 @@ void mode3_fsm(void){
         case P1_WIN:
             // *** outputs ***
             if (!counter) {
-                AUDIO_playSound(SOUND_WON);
-                PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
+                if (!blink_count) {
+                    AUDIO_playSound(SOUND_WON);
+                }
+                /* Turn off loser's LEDs */
                 PATTERN_setPattern(PLAYER_2, PATTERN_NONE);
+                STATE_setState(PLAYER_2, STATE_NONE);
+                LIVES_setLives(PLAYER_2, 0);
+                
+                /* Turn on winner's LEDs */
+                PATTERN_setPattern(PLAYER_1, PATTERN_ALL);
+                STATE_setState(PLAYER_1, STATE_ALL);
+                LIVES_setLives(PLAYER_1, 5);
+                
                 LEDS_update();
             }
 
@@ -188,9 +200,19 @@ void mode3_fsm(void){
             
             // *** outputs ***
             if (!counter) {
-                AUDIO_playSound(SOUND_WON);
+                if (!blink_count) {
+                    AUDIO_playSound(SOUND_WON);
+                }
+                /* Turn off loser's LEDs */
                 PATTERN_setPattern(PLAYER_1, PATTERN_NONE);
+                STATE_setState(PLAYER_1, STATE_NONE);
+                LIVES_setLives(PLAYER_1, 0);
+                
+                /* Turn on winner's LEDs */
                 PATTERN_setPattern(PLAYER_2, PATTERN_ALL);
+                STATE_setState(PLAYER_2, STATE_ALL);
+                LIVES_setLives(PLAYER_2, 5);
+                
                 LEDS_update();
             }
 

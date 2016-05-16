@@ -20,6 +20,7 @@ void AUDIO_ISR(void);
 void AUDIO_init(void);
 void AUDIO_playSound(int to_play);
 void AUDIO_tap(unsigned char);
+void AUDIO_tap_enable(int enable);
 
 #ifdef	__cplusplus
 }

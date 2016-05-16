@@ -65,6 +65,8 @@ void main(void) {
         AUDIO_tap(p1_pressed);
         AUDIO_tap(p2_pressed);
         
+        AUDIO_fsm();
+        
         if (time_ms++ < 2) {
             FEEDBACK_giveFeedback(PLAYER_1);
             FEEDBACK_giveFeedback(PLAYER_2);
@@ -102,6 +104,8 @@ static void init(void)
     
     /* Hardware */
     hardware_init();
+    
+    AUDIO_playSound(SOUND_WON);
 }
 
 //EOF-------------------------------------------------------------------------

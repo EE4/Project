@@ -30,6 +30,7 @@
 //  PRIVATE VARIABLES
 //===----------------------------------------------------------------------===//
 
+static bool feedback_enable = FALSE;
 static long sound_length;
 static const char *sound;
 static const char *sample;
@@ -137,6 +138,11 @@ static void AUDIO_tick(void)
 //  PUBLIC DECLARATIONS
 //===----------------------------------------------------------------------===//
 
+void AUDIO_tap_enable(int enable) 
+{
+    feedback_enable = (bool)enable;
+}
+
 void AUDIO_ISR(void)
 {
     if (INTCONbits.TMR0IF) {
@@ -147,6 +153,88 @@ void AUDIO_ISR(void)
         TMR0L = (uint8_t)P_SAMPLE; /* Overflow after C_SAMPLE counts */
 
         INTCONbits.TMR0IF = 0; /* Reset interrupt flag */
+    }
+}
+
+static enum
+{
+    WIN_IDLE,
+    WIN_DO1,
+    WIN_MI1,
+    WIN_SOL1,
+    WIN_DO2,
+    WIN_SOL2,
+    WIN_DO3,
+} win_state;
+
+static bool win_trigger;
+
+void AUDIO_fsm(void)
+{
+    switch (win_state) {
+        case WIN_IDLE:
+            if (win_trigger) {
+                sample = do_central;
+                sound = do_central;
+                sound_length = DO_CENTRAL_LENGTH >> 1;
+                
+                win_state = WIN_DO1; 
+            }
+            break;
+        case WIN_DO1:
+            win_trigger = FALSE;
+            
+            if (sound_done) {
+                sample = fa_central;
+                sound = fa_central;
+                sound_length = FA_CENTRAL_LENGTH >> 1;
+                
+                win_state = WIN_MI1;
+            }
+            break;
+        case WIN_MI1:
+            if (sound_done) {
+                sample = sol_central;
+                sound = sol_central;
+                sound_length = SOL_CENTRAL_LENGTH >> 1;
+                
+                win_state = WIN_SOL1;
+            }
+            break;
+        case WIN_SOL1:
+            if (sound_done) {
+                sample = do_second;
+                sound = do_second;
+                sound_length = DO_SECOND_LENGTH;
+                
+                win_state = WIN_DO2;
+            }
+            break;
+        case WIN_DO2:
+            if (sound_done) {
+                sample = sol_central;
+                sound = sol_central;
+                sound_length = SOL_CENTRAL_LENGTH  >> 1;
+                
+                win_state = WIN_SOL2;
+            }
+            break;
+        case WIN_SOL2:
+            if (sound_done) {
+                sample = do_second;
+                sound = do_second;
+                sound_length = DO_SECOND_LENGTH;
+                
+                win_state = WIN_DO3;
+            }
+            break;
+        case WIN_DO3:
+            if (sound_done) {
+                win_state = WIN_IDLE;
+            }
+            break;
+        default:
+            return;
     }
 }
 
@@ -174,9 +262,7 @@ void AUDIO_playSound(int to_play)
             sound_length = DO_CENTRAL_LENGTH;
             break;
         case SOUND_WON:
-            sample = do_central;
-            sound = do_central;
-            sound_length = DO_CENTRAL_LENGTH;
+            win_trigger = TRUE;
             break;
         case SOUND_READY:
             sample = ready;
@@ -202,6 +288,9 @@ void AUDIO_playSound(int to_play)
 
 void AUDIO_tap(unsigned char pattern)
 {
+    if (!feedback_enable)
+        return;
+    
     /*
      *  ORDER OF EXECUTION IS IMPORTANT. DON'T CHANGE.
      * 
@@ -252,4 +341,5 @@ void AUDIO_init(void)
     sound_length = 0;
     AUDIO_setupPWM();
     AUDIO_setupSampler();
+    win_trigger = FALSE;
 }

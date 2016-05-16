@@ -179,10 +179,12 @@ extern unsigned short PWM_duty[PWM_CHANNELS];
 //  PATTERN DISPLAY
 //===----------------------------------------------------------------------===//
 
-#define MAX_PATTERNS (10u)
+#define MAX_PATTERNS    (10u)
 
 /* Delay in ms between 2 successive patterns */
-#define PATTERN_DELAY (700)
+#define PATTERN_DELAY   (500)
+
+#define WIN_BLINK_TIME  (400)
 
 extern bool pattern_done;
 
@@ -210,5 +212,6 @@ extern unsigned char P2_right_counter;
 void hardware_init(void);
 unsigned char timed_to_1ms(void);
 void interrupt interrupt_handler(void);
+void tap_feedback_enable(int enable);
 
 #endif

@@ -75,6 +75,7 @@ void display_pattern(void)
 void enable_checking(void)
 {
     playing = TRUE;
+    tap_feedback_enable(TRUE);
 }
 
 void display_pattern_fsm(void)
@@ -97,6 +98,7 @@ void display_pattern_fsm(void)
             // *** outputs ***
             timer = 0;
             display = FALSE;
+            tap_feedback_enable(FALSE);
             
             if (index < (round << 1)) {
                 /* Generate random pattern and store it */
@@ -155,6 +157,8 @@ void display_pattern_fsm(void)
                 state = STATE_WAIT;
         case STATE_DONE:
             // *** outputs ***
+            playing = FALSE;
+            
             if (P1_right_counter < (round << 1)) {
                 if (p1_pressed) {
                     if (p1_pressed == patterns[P1_right_counter]) {
@@ -193,7 +197,7 @@ void display_pattern_fsm(void)
                 P2_right_counter = 0;
                 p1_tapped = NONE;
                 p2_tapped = NONE;
-                state = STATE_DISPLAY;
+                state = STATE_IDLE;
             } else if (game_ended) {
                 state = STATE_IDLE;
             } else {

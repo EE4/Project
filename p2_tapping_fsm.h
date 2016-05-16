@@ -18,6 +18,7 @@ extern "C" {
 //  PUBLIC PROTOTYPES
 //===----------------------------------------------------------------------===//
 
+void p2_tap_display_enable(int enable);
 void p2_tapping_fsm_init(void);
 void p2_tapping_fsm(void);
 
