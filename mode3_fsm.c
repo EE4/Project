@@ -120,10 +120,12 @@ void mode3_fsm(void){
             
             if (SCORE_getScore() > 7) {
                 counter = 0;
-                current_state = P1_WIN;
+                winner = PLAYER_1;
+                current_state = GAME_DONE;
             } else if (SCORE_getScore() < -7) {
                 counter = 0;
-                current_state = P2_WIN;
+                winner = PLAYER_2;
+                current_state = GAME_DONE;
             } else if (counter > 30000) {
                 counter = 0;
                 current_state = DELIBERATE;
